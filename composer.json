@@ -1,0 +1,25 @@
+{
+    "name": "chongyi/fanatical-php",
+    "description": "swoole 项目脚手架",
+    "minimum-stability": "stable",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "chongyi",
+            "email": "xpz3847878@163.com"
+        }
+    ],
+    "require": {
+        "laravel/homestead": "^3.0",
+        "symfony/console": "^3.1",
+        "illuminate/database": "^5.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "FanaticalPHP\\": "src/"
+        }
+    },
+    "bin": [
+        "bin/flp"
+    ]
+}

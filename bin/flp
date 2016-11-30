@@ -1,0 +1,7 @@
+#!/usr/bin/env php
+<?php
+require __DIR__ . '/../vendor/autoload.php';
+
+define('FANATICAL_PROJECT_ROOT', realpath(__DIR__ . '/../'));
+
+(new \FanaticalPHP\Base\EntryController())->execute();

@@ -1,0 +1,5 @@
+Homestead.yaml
+vendor/
+.idea/
+.vagrant/
+.project/
