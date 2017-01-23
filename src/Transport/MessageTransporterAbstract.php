@@ -13,7 +13,7 @@ use Closure;
 /**
  * Class MessageTransporter
  *
- * @packageFanaticalPHP\Transport
+ * @package FanaticalPHP\Transport
  */
 abstract class MessageTransporterAbstract
 {
