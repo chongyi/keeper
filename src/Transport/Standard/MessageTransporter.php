@@ -46,7 +46,7 @@ class MessageTransporter extends MessageTransporterAbstract
     /**
      * @var mixed
      */
-    protected $target;
+    protected $target = null;
 
 
     /**

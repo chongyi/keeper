@@ -13,6 +13,8 @@ use FanaticalPHP\Transport\MessageTransporterAbstract;
 
 class MessageTransporter extends MessageTransporterAbstract
 {
+    protected $target = null;
+
     /**
      * MessageTransporter constructor.
      *
@@ -30,5 +32,27 @@ class MessageTransporter extends MessageTransporterAbstract
     {
         return $this->message->compile();
     }
+
+    /**
+     * @return mixed
+     */
+    public function getTarget()
+    {
+        return $this->target;
+    }
+
+    /**
+     * @param mixed $target
+     *
+     * @return MessageTransporter
+     */
+    public function setTarget($target)
+    {
+        $this->target = $target;
+
+        return $this;
+    }
+
+
 
 }
