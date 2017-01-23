@@ -6,7 +6,7 @@
  * Created at: 2017/01/13 10:54
  */
 
-namespace OverpoweredService\KeeperPlus\Transport\KeeperStandard;
+namespace OverpoweredService\KeeperPlus\Transport\Standard;
 
 use FanaticalPHP\Transport\Message;
 use FanaticalPHP\Transport\MessageObjectMap;
@@ -42,6 +42,11 @@ class MessageTransporter extends MessageTransporterAbstract
      * @var int $protocolType 目前仅支持 1
      */
     protected $protocolType = 1;
+
+    /**
+     * @var mixed
+     */
+    protected $target;
 
 
     /**
@@ -79,6 +84,20 @@ class MessageTransporter extends MessageTransporterAbstract
     }
 
     /**
+     * @param mixed $target
+     *
+     * @return MessageTransporter
+     */
+    public function setTarget($target)
+    {
+        $this->target = $target;
+
+        return $this;
+    }
+
+
+
+    /**
      * @return int
      */
     public function getTargetType()
@@ -101,6 +120,15 @@ class MessageTransporter extends MessageTransporterAbstract
 
         return $this;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTarget()
+    {
+        return $this->target;
+    }
+
 
     /**
      * @return string

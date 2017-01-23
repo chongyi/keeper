@@ -50,6 +50,13 @@ abstract class MessageTransporterAbstract
      */
     abstract public function getCompiled();
 
+    /**
+     * 获取寄送目标
+     *
+     * @return mixed
+     */
+    abstract public function getTarget();
+
 
     /**
      * @return mixed
@@ -58,6 +65,6 @@ abstract class MessageTransporterAbstract
     {
         $compiled = $this->getCompiled();
 
-        return call_user_func_array($this->transporter, [$compiled]);
+        return call_user_func_array($this->transporter, [$this->getTarget(), $compiled]);
     }
 }
