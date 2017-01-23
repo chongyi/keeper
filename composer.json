@@ -18,8 +18,5 @@
         "psr-4": {
             "FanaticalPHP\\": "src/"
         }
-    },
-    "bin": [
-        "bin/flp"
-    ]
+    }
 }
