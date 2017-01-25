@@ -69,9 +69,14 @@ abstract class ProcessHandler
     final public function buildProcess()
     {
         return function (Process $process) {
-            posix_setuid($this->processManager->userId);
-            posix_setgid($this->processManager->groupId);
+            if (!is_null($this->processManager->userId)) {
+                posix_setuid($this->processManager->userId);
+            }
 
+            if (!is_null($this->processManager->groupId)) {
+                posix_setgid($this->processManager->groupId);
+            }
+            
             $this->runProcess($process);
         };
     }
