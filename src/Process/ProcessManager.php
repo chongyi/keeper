@@ -356,6 +356,13 @@ class ProcessManager
         };
     }
 
+    /**
+     * 通过配置设置组件
+     *
+     * @param array $config
+     *
+     * @return $this
+     */
     public function setConfig(array $config)
     {
         if (isset($config['pid_file'])) {
@@ -385,6 +392,8 @@ class ProcessManager
         if (isset($config['bootstrap'])) {
             $this->bootstrapLoader($config['bootstrap']);
         }
+
+        return $this;
     }
 
     /**
