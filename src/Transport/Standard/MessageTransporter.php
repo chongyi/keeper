@@ -9,7 +9,7 @@
 namespace OverpoweredService\KeeperPlus\Transport\Standard;
 
 use FanaticalPHP\Transport\Message;
-use FanaticalPHP\Transport\MessageObjectMap;
+use FanaticalPHP\Transport\MessageObjectIndex;
 use FanaticalPHP\Transport\MessageTransporterAbstract;
 
 class MessageTransporter extends MessageTransporterAbstract
@@ -30,14 +30,17 @@ class MessageTransporter extends MessageTransporterAbstract
      * 共计 4 个字节的长度。
      */
     const BASE_CHUNK_PACK_FORMAT_STRING = 'CCCC';
+
     /**
      * @var int
      */
     protected $originType = 0;
+
     /**
      * @var int
      */
     protected $targetType = 0;
+
     /**
      * @var int $protocolType 目前仅支持 1
      */
@@ -47,7 +50,6 @@ class MessageTransporter extends MessageTransporterAbstract
      * @var mixed
      */
     protected $target = null;
-
 
     /**
      * MessageTransporter constructor.
@@ -139,7 +141,7 @@ class MessageTransporter extends MessageTransporterAbstract
             return $this->compiled;
         }
 
-        $messageType = MessageObjectMap::getId(get_class($this->message));
+        $messageType = MessageObjectIndex::getIndex(get_class($this->message));
         $compiledBaseChunk
                      = pack(static::BASE_CHUNK_PACK_FORMAT_STRING, $this->protocolType, $this->originType,
             $this->targetType,

@@ -9,7 +9,7 @@
 namespace FanaticalPHP\Transport\KeeperStandard;
 
 use FanaticalPHP\Transport\Message;
-use FanaticalPHP\Transport\MessageObjectMap;
+use FanaticalPHP\Transport\MessageObjectIndex;
 use FanaticalPHP\Transport\Exceptions\DataResolveException;
 use FanaticalPHP\Transport\MessageReceiverAbstract;
 
@@ -72,7 +72,7 @@ class MessageReceiver extends MessageReceiverAbstract
         // 目前先不对来源和目标进行判断，当前也没有对于两者做区分的必要
         // 因此直接判断消息类型，然后做对应的后续解析处理
         if (!isset($baseChunkResolvedData['messageType']) ||
-            is_null($messageType = MessageObjectMap::find($baseChunkResolvedData['messageType']))
+            is_null($messageType = MessageObjectIndex::find($baseChunkResolvedData['messageType']))
         ) {
             throw new DataResolveException('Unknown message type.', 4);
         }
