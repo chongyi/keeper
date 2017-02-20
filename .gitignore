@@ -3,3 +3,4 @@ vendor/
 .idea/
 .vagrant/
 .project/
+composer.lock

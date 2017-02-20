@@ -152,31 +152,26 @@ class ProcessManager
 
     /**
      * 运行
+     *
+     * @param boolean $force
+     *
+     * @return int
      */
-    public function run()
+    public function run($force = false)
     {
-        if (!is_dir($path = dirname($this->pidFile))) {
-            @mkdir($path, 0744, true);
-        }
+        $this->touchPidFile();
+        $this->pidFileHandle = $this->buildPidFileDescriptor();
 
-        if (!is_file($this->pidFile)) {
-            touch($this->pidFile);
-        }
+        if ($pid = $this->getRunningInstancePid($this->pidFileHandle)) {
+            if (!$force) {
+                throw new \RuntimeException("Have running instance (PID: $pid). Nothing to do.", 2);
+            }
 
-        $this->pidFileHandle = fopen($this->pidFile, 'r+');
+            fclose($this->pidFileHandle);
+            Process::kill($pid);
+            sleep(3);
 
-        if (!$this->pidFileHandle) {
-            fwrite(STDERR, "Create PID file failed.\n");
-            exit(1);
-        }
-
-        if (!flock($this->pidFileHandle, LOCK_EX | LOCK_NB)) {
-            $fd  = fopen($this->pidFile, 'r');
-            $pid = fread($fd, 64);
-
-            print "Have running instance (PID: $pid). Nothing to do.\n";
-            fclose($fd);
-            exit(2);
+            return $this->run();
         }
 
         if ($this->daemon) {
@@ -187,6 +182,18 @@ class ProcessManager
         fwrite($this->pidFileHandle, $this->processId = getmypid());
 
         $this->handlerManagerProcess();
+
+        return $this->processId;
+    }
+
+    /**
+     * 停止
+     */
+    public function stop()
+    {
+        if (is_file($this->pidFile) && $pid = $this->getRunningInstancePid(fopen($this->pidFile, 'r+'))) {
+            Process::kill($pid);
+        }
     }
 
     /**
@@ -202,7 +209,7 @@ class ProcessManager
         $this->bootstrap();
     }
 
-    public function bootstrap()
+    protected function bootstrap()
     {
         foreach ($this->bootstrapLoaders as $bootstrap) {
             /** @var ProcessHandler $processBootstrap */
@@ -219,7 +226,7 @@ class ProcessManager
      *
      * @return $this
      */
-    protected function bootstrapLoader($bootstrapLoaders)
+    public function bootstrapLoader($bootstrapLoaders)
     {
         $this->bootstrapLoaders = $bootstrapLoaders;
 
@@ -331,6 +338,45 @@ class ProcessManager
                 $process->kill(SIGUSR1);
             }
         };
+    }
+
+    protected function touchPidFile()
+    {
+        if (!is_dir($path = dirname($this->pidFile))) {
+            @mkdir($path, 0644, true);
+        }
+
+        if (!is_file($this->pidFile)) {
+            touch($this->pidFile);
+        }
+    }
+
+    protected function buildPidFileDescriptor()
+    {
+        $fd = fopen($this->pidFile, 'r+');
+
+        if (!$fd) {
+            throw new \RuntimeException('Create PID file failed.', 1);
+        }
+
+        return $fd;
+    }
+
+    protected function getRunningInstancePid($fd = null)
+    {
+        if ($this->processId) {
+            return $this->processId;
+        }
+
+        if (is_null($fd)) {
+            $fd = $this->pidFileHandle;
+        }
+
+        if (!flock($fd, LOCK_EX | LOCK_NB)) {
+            return fread($fd, 64);
+        }
+
+        return false;
     }
 
 }
