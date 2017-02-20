@@ -265,7 +265,7 @@ class ProcessManager
                 $this->signal = $signal;
 
                 foreach ($this->childrenProcesses as $process) {
-                    $process->kill();
+                    $process->stop();
                 }
             } else {
                 $this->terminate();

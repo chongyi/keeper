@@ -114,4 +114,12 @@ abstract class ProcessHandler
     {
         Process::kill($this->processId, $signal);
     }
+
+    /**
+     * 停止
+     */
+    final public function stop()
+    {
+        $this->kill();
+    }
 }
