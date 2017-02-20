@@ -87,6 +87,11 @@ class ProcessManager
     protected $signal;
 
     /**
+     * @var bool
+     */
+    public $runningInstance = false;
+
+    /**
      * ProcessManager constructor.
      *
      * @param Container $container
@@ -127,7 +132,7 @@ class ProcessManager
     /**
      * @param string $user
      *
-     * @return ProcessManager
+     * @return $this
      */
     public function user($user)
     {
@@ -140,12 +145,24 @@ class ProcessManager
     /**
      * @param string $group
      *
-     * @return ProcessManager
+     * @return $this
      */
     public function group($group)
     {
         $this->group   = $group;
         $this->groupId = posix_getgrnam($group)['gid'];
+
+        return $this;
+    }
+
+    /**
+     * @param string $processName
+     *
+     * @return $this
+     */
+    public function processName($processName)
+    {
+        $this->processName = $processName;
 
         return $this;
     }
@@ -181,7 +198,7 @@ class ProcessManager
         ftruncate($this->pidFileHandle, 0);
         fwrite($this->pidFileHandle, $this->processId = getmypid());
 
-        $this->handlerManagerProcess();
+        $this->startManagerProcess();
 
         return $this->processId;
     }
@@ -199,12 +216,18 @@ class ProcessManager
     /**
      * 主进程管理器注册
      */
-    protected function handlerManagerProcess()
+    protected function startManagerProcess()
     {
+        if ($this->processName) {
+            swoole_set_process_name($this->processName);
+        }
+
         Process::signal(SIGTERM, $this->onTerminating());
         Process::signal(SIGCHLD, $this->onChildProcessShutdown());
         Process::signal(SIGUSR1, $this->onReopen());
         Process::signal(SIGUSR2, $this->onReload());
+
+        $this->runningInstance = true;
 
         $this->bootstrap();
     }
@@ -226,7 +249,7 @@ class ProcessManager
      *
      * @return $this
      */
-    public function bootstrapLoader($bootstrapLoaders)
+    public function bootstrapLoader(array $bootstrapLoaders)
     {
         $this->bootstrapLoaders = $bootstrapLoaders;
 
@@ -340,6 +363,72 @@ class ProcessManager
         };
     }
 
+    /**
+     * 通过配置设置组件
+     *
+     * @param array $config
+     *
+     * @return $this
+     */
+    public function setConfig(array $config)
+    {
+        if (isset($config['pid_file'])) {
+            $this->pidFile($config['pid_file']);
+        }
+
+        if (isset($config['daemon'])) {
+            if (is_string($config['daemon']) && strtolower($config['daemon']) === 'true') {
+                $this->daemon(true);
+            } else {
+                $this->daemon((bool)$config['daemon']);
+            }
+        }
+
+        if (isset($config['process_name'])) {
+            $this->processName($config['process_name']);
+        }
+
+        if (isset($config['group'])) {
+            $this->group($config['group']);
+        }
+
+        if (isset($config['user'])) {
+            $this->user($config['user']);
+        }
+
+        if (isset($config['bootstrap'])) {
+            $this->bootstrapLoader($config['bootstrap']);
+        }
+
+        return $this;
+    }
+
+    /**
+     * 获取 PID
+     *
+     * @return bool|int|string
+     */
+    public function getPid()
+    {
+        if ($this->runningInstance) {
+            return $this->processId;
+        }
+
+        if ($this->pidFile && is_file($this->pidFile)) {
+            $fd = fopen($this->pidFile, 'r');
+
+            if (!$fd) {
+                return false;
+            }
+
+            $pid = fread($fd, 64);
+            fclose($fd);
+
+            return $pid;
+        }
+
+        return false;
+    }
     protected function touchPidFile()
     {
         if (!is_dir($path = dirname($this->pidFile))) {
