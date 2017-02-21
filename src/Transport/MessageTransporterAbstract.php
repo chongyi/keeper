@@ -6,14 +6,14 @@
  * Created at: 2016/12/23 11:47
  */
 
-namespace FanaticalPHP\Transport;
+namespace Keeper\Transport;
 
 use Closure;
 
 /**
  * Class MessageTransporter
  *
- * @package FanaticalPHP\Transport
+ * @package Keeper\Transport
  */
 abstract class MessageTransporterAbstract
 {

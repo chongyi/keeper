@@ -6,15 +6,15 @@
  * Created at: 2016/12/23 11:57
  */
 
-namespace FanaticalPHP\Transport;
+namespace Keeper\Transport;
 
-use FanaticalPHP\Transport\Exceptions\ConflictException;
+use Keeper\Transport\Exceptions\ConflictException;
 
 
 /**
  * Class MessageObjectMap
  *
- * @package FanaticalPHP\Transport
+ * @package Keeper\Transport
  */
 class MessageObjectIndex
 {

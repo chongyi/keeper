@@ -6,14 +6,14 @@
  * Created at: 2016/12/23 11:52
  */
 
-namespace FanaticalPHP\Transport;
+namespace Keeper\Transport;
 
-use FanaticalPHP\Transport\Exceptions\DataResolveException;
+use Keeper\Transport\Exceptions\DataResolveException;
 
 /**
  * Class MessageReceiver
  *
- * @package FanaticalPHP\Transport
+ * @package Keeper\Transport
  */
 abstract class MessageReceiverAbstract
 {

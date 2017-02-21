@@ -6,7 +6,7 @@
  * Created at: 2016/12/23 11:53
  */
 
-namespace FanaticalPHP\Transport;
+namespace Keeper\Transport;
 
 
 interface Message
