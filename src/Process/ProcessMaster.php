@@ -57,6 +57,11 @@ class ProcessMaster
     protected $childrenProcesses = [];
 
     /**
+     * @var array|int[]
+     */
+    protected $childrenProcessPipes = [];
+
+    /**
      * @var string[]
      */
     protected $bootstrapLoaders = [];
@@ -90,6 +95,11 @@ class ProcessMaster
      * @var bool
      */
     public $runningInstance = false;
+
+    /**
+     * @var \Closure
+     */
+    protected $ioEventCallback;
 
     /**
      * ProcessManager constructor.
@@ -239,7 +249,28 @@ class ProcessMaster
             $processBootstrap                    = new $bootstrap($this, $this->container);
             $processId                           = $processBootstrap->run();
             $this->childrenProcesses[$processId] = $processBootstrap;
+
+            $this->childrenProcessPipes[$pipe = $processBootstrap->getProcess()->pipe] = $processId;
+
+            swoole_event_add($pipe, $this->ioEvent());
         }
+    }
+
+    protected function ioEvent(\Closure $callback = null)
+    {
+        if (is_null($callback)) {
+            if (is_null($this->ioEventCallback)) {
+                return $this->ioEventCallback = function () {
+                    //
+                };
+            }
+
+            return $this->ioEventCallback;
+        }
+
+        $this->ioEventCallback = $callback;
+
+        return $this;
     }
 
     /**
@@ -322,9 +353,13 @@ class ProcessMaster
                     $processBootstrap                    = new $bootstrap($this);
                     $processId                           = $processBootstrap->run();
                     $this->childrenProcesses[$processId] = $processBootstrap;
+
+                    $this->childrenProcessPipes[$pipe = $processBootstrap->getProcess()->pipe] = $processId;
+                    swoole_event_add($pipe, $this->ioEvent());
                 }
 
                 unset($this->childrenProcesses[$ret['pid']]);
+                unset($this->childrenProcessPipes[array_search($ret['pid'], $this->childrenProcessPipes)]);
             }
 
             if (SIGTERM === $this->signal || SIGKILL === $this->signal) {
@@ -429,6 +464,7 @@ class ProcessMaster
 
         return false;
     }
+
     protected function touchPidFile()
     {
         if (!is_dir($path = dirname($this->pidFile))) {

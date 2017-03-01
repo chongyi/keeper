@@ -23,7 +23,7 @@ abstract class ProcessHandler
     /**
      * @var ProcessMaster
      */
-    protected $processManager;
+    protected $processMaster;
 
     /**
      * @var Process
@@ -41,14 +41,19 @@ abstract class ProcessHandler
     private $container;
 
     /**
+     * @var bool 是否开启异步 IO 事件
+     */
+    protected $async = false;
+
+    /**
      * ProcessBuilder constructor.
      *
-     * @param ProcessMaster $processManager
+     * @param ProcessMaster $processMaster
      */
-    public function __construct(ProcessMaster $processManager)
+    public function __construct(ProcessMaster $processMaster)
     {
-        $this->processManager = $processManager;
-        $this->container      = $processManager->getContainer();
+        $this->processMaster = $processMaster;
+        $this->container     = $processMaster->getContainer();
     }
 
     /**
@@ -69,15 +74,30 @@ abstract class ProcessHandler
     final public function buildProcess()
     {
         return function (Process $process) {
-            if (!is_null($this->processManager->userId)) {
-                posix_setuid($this->processManager->userId);
+            if (!is_null($this->processMaster->userId)) {
+                posix_setuid($this->processMaster->userId);
             }
 
-            if (!is_null($this->processManager->groupId)) {
-                posix_setgid($this->processManager->groupId);
+            if (!is_null($this->processMaster->groupId)) {
+                posix_setgid($this->processMaster->groupId);
+            }
+
+            if ($this->async) {
+                // 若开启异步，则需要设置事件处理方法返回一个回调函数
+                swoole_event_add($process->pipe, $this->ioEvent());
             }
             
             $this->runProcess($process);
+        };
+    }
+
+    /**
+     * @return \Closure
+     */
+    protected function ioEvent()
+    {
+        return function () {
+            //
         };
     }
 
@@ -99,6 +119,14 @@ abstract class ProcessHandler
     final public function getProcessId()
     {
         return $this->processId;
+    }
+
+    /**
+     * @return Process
+     */
+    final public function getProcess()
+    {
+        return $this->process;
     }
 
     /**
