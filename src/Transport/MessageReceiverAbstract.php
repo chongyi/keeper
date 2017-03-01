@@ -13,24 +13,20 @@ use Keeper\Transport\Exceptions\DataResolveException;
 /**
  * Class MessageReceiver
  *
+ * 消息接收器
+ *
  * @package Keeper\Transport
  */
-abstract class MessageReceiverAbstract
+interface MessageReceiverAbstract
 {
     /**
-     * @var string 解析前的原始数据
-     */
-    protected $origin;
-
-    /**
-     * @var Message 解析结果
-     */
-    protected $resolved;
-
-    /**
+     * 获取解析的消息
+     *
+     * @param mixed $origin
+     *
      * @return Message
      *
      * @throws DataResolveException
      */
-    abstract public function getResolved();
+    public function getResolved($origin);
 }

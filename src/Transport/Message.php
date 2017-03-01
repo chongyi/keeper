@@ -8,7 +8,13 @@
 
 namespace Keeper\Transport;
 
-
+/**
+ * Interface Message
+ *
+ * 消息接口
+ *
+ * @package Keeper\Transport
+ */
 interface Message
 {
     /**

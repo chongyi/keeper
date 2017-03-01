@@ -21,7 +21,7 @@ use Illuminate\Contracts\Container\Container;
 abstract class ProcessHandler
 {
     /**
-     * @var ProcessManager
+     * @var ProcessMaster
      */
     protected $processManager;
 
@@ -43,9 +43,9 @@ abstract class ProcessHandler
     /**
      * ProcessBuilder constructor.
      *
-     * @param ProcessManager $processManager
+     * @param ProcessMaster $processManager
      */
-    public function __construct(ProcessManager $processManager)
+    public function __construct(ProcessMaster $processManager)
     {
         $this->processManager = $processManager;
         $this->container      = $processManager->getContainer();

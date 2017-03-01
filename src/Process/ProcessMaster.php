@@ -1,6 +1,6 @@
 <?php
 /**
- * ProcessManager.php
+ * ProcessMaster.php
  *
  * Creator:         chongyi
  * Create Datetime: 2017/1/23 22:04
@@ -19,7 +19,7 @@ use Illuminate\Container\Container as laravelContainer;
  *
  * @package Keeper\Process
  */
-class ProcessManager
+class ProcessMaster
 {
     /**
      * @var int

@@ -13,58 +13,18 @@ use Closure;
 /**
  * Class MessageTransporter
  *
+ * 消息传递器
+ *
  * @package Keeper\Transport
  */
-abstract class MessageTransporterAbstract
+interface MessageTransporterAbstract
 {
     /**
-     * @var Closure
-     */
-    protected $transporter;
-
-    /**
-     * @var string
-     */
-    protected $compiled;
-
-    /**
-     * @var Message
-     */
-    protected $message;
-
-
-    /**
-     * @param Closure $callback
+     * 发送消息
      *
-     * @return $this
-     */
-    public function transporter(Closure $callback)
-    {
-        $this->transporter = $callback;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    abstract public function getCompiled();
-
-    /**
-     * 获取寄送目标
+     * @param Message $message
      *
      * @return mixed
      */
-    abstract public function getTarget();
-
-
-    /**
-     * @return mixed
-     */
-    public function send()
-    {
-        $compiled = $this->getCompiled();
-
-        return call_user_func_array($this->transporter, [$this->getTarget(), $compiled]);
-    }
+    public function send(Message $message);
 }
