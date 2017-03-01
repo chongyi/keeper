@@ -6,7 +6,7 @@
  * Created at: 2016/11/29 17:35
  */
 
-namespace Keeper\Process;
+namespace Keeper\Base\Process;
 
 use Swoole\Process;
 use Illuminate\Contracts\Container\Container;
@@ -16,7 +16,7 @@ use Illuminate\Contracts\Container\Container;
  *
  * 托管进程管理器
  *
- * @package Keeper\Process
+ * @package Keeper\Base\Process
  */
 abstract class ProcessHandler
 {

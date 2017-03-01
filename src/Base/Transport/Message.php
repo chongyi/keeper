@@ -6,14 +6,14 @@
  * Created at: 2016/12/23 11:53
  */
 
-namespace Keeper\Transport;
+namespace Keeper\Base\Transport;
 
 /**
  * Interface Message
  *
  * 消息接口
  *
- * @package Keeper\Transport
+ * @package Keeper\Base\Transport
  */
 interface Message
 {

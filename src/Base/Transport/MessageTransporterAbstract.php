@@ -6,16 +6,14 @@
  * Created at: 2016/12/23 11:47
  */
 
-namespace Keeper\Transport;
-
-use Closure;
+namespace Keeper\Base\Transport;
 
 /**
  * Class MessageTransporter
  *
  * 消息传递器
  *
- * @package Keeper\Transport
+ * @package Keeper\Base\Transport
  */
 interface MessageTransporterAbstract
 {

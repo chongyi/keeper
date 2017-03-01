@@ -6,7 +6,7 @@
  * Create Datetime: 2017/1/23 22:04
  */
 
-namespace Keeper\Process;
+namespace Keeper\Base\Process;
 
 use Swoole\Process;
 use Illuminate\Contracts\Container\Container;
@@ -17,7 +17,7 @@ use Illuminate\Container\Container as laravelContainer;
  *
  * 主进程管理器
  *
- * @package Keeper\Process
+ * @package Keeper\Base\Process
  */
 class ProcessMaster
 {

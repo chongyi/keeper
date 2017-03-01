@@ -6,16 +6,16 @@
  * Created at: 2016/12/23 11:52
  */
 
-namespace Keeper\Transport;
+namespace Keeper\Base\Transport;
 
-use Keeper\Transport\Exceptions\DataResolveException;
+use Keeper\Base\Transport\Exceptions\DataResolveException;
 
 /**
  * Class MessageReceiver
  *
  * 消息接收器
  *
- * @package Keeper\Transport
+ * @package Keeper\Base\Transport
  */
 interface MessageReceiverAbstract
 {
