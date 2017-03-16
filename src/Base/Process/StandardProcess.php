@@ -14,11 +14,11 @@ use Illuminate\Contracts\Container\Container;
 /**
  * Class ProcessHandler
  *
- * 托管进程管理器
+ * 标准进程记录
  *
  * @package Keeper\Base\Process
  */
-abstract class ProcessHandler
+abstract class StandardProcess
 {
     /**
      * @var ProcessMaster
@@ -36,34 +36,15 @@ abstract class ProcessHandler
     protected $processId;
 
     /**
-     * @var Container
-     */
-    private $container;
-
-    /**
-     * @var bool 是否开启异步 IO 事件
-     */
-    protected $async = false;
-
-    /**
-     * ProcessBuilder constructor.
-     *
      * @param ProcessMaster $processMaster
+     *
+     * @return $this
      */
-    public function __construct(ProcessMaster $processMaster)
+    public function setProcessMaster(ProcessMaster $processMaster)
     {
         $this->processMaster = $processMaster;
-        $this->container     = $processMaster->getContainer();
-    }
 
-    /**
-     * 获取容器
-     *
-     * @return Container|null
-     */
-    final public function getContainer()
-    {
-        return $this->container;
+        return $this;
     }
 
     /**
@@ -81,23 +62,8 @@ abstract class ProcessHandler
             if (!is_null($this->processMaster->groupId)) {
                 posix_setgid($this->processMaster->groupId);
             }
-
-            if ($this->async) {
-                // 若开启异步，则需要设置事件处理方法返回一个回调函数
-                swoole_event_add($process->pipe, $this->ioEvent());
-            }
             
             $this->runProcess($process);
-        };
-    }
-
-    /**
-     * @return \Closure
-     */
-    protected function ioEvent()
-    {
-        return function () {
-            //
         };
     }
 
@@ -130,6 +96,14 @@ abstract class ProcessHandler
     }
 
     /**
+     * @return int
+     */
+    final public function getProcessPipe()
+    {
+        return $this->process->pipe;
+    }
+
+    /**
      * 运行进程
      *
      * @param Process $process
@@ -143,7 +117,7 @@ abstract class ProcessHandler
      *
      * @param int $signal
      */
-    final public function kill($signal = SIGTERM)
+    public function kill($signal = SIGTERM)
     {
         Process::kill($this->processId, $signal);
     }

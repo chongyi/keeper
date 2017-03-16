@@ -52,7 +52,7 @@ class ProcessMaster
     protected $daemon = false;
 
     /**
-     * @var ProcessHandler[]
+     * @var StandardProcess[]
      */
     protected $childrenProcesses = [];
 
@@ -95,11 +95,6 @@ class ProcessMaster
      * @var bool
      */
     public $runningInstance = false;
-
-    /**
-     * @var \Closure
-     */
-    protected $ioEventCallback;
 
     /**
      * ProcessManager constructor.
@@ -239,38 +234,46 @@ class ProcessMaster
 
         $this->runningInstance = true;
 
+        $this->container->instance(static::class, $this);
         $this->bootstrap();
     }
 
+    /**
+     * 构建进程类
+     *
+     * @param string|\Closure|StandardProcess $process
+     *
+     * @return StandardProcess
+     */
+    protected function buildProcess($process)
+    {
+        if (is_string($process)) {
+            $processInstance = $this->container->make($process);
+        } elseif ($process instanceof \Closure) {
+            $processInstance = $this->container->call($process);
+        } else {
+            $processInstance = $process;
+        }
+
+        if ($processInstance instanceof StandardProcess) {
+            return $processInstance->setProcessMaster($this);
+        }
+
+        throw new \InvalidArgumentException('Cannot build process from provider.');
+    }
+
+    /**
+     * 初始化加载过程
+     */
     protected function bootstrap()
     {
         foreach ($this->bootstrapLoaders as $bootstrap) {
-            /** @var ProcessHandler $processBootstrap */
-            $processBootstrap                    = new $bootstrap($this, $this->container);
-            $processId                           = $processBootstrap->run();
-            $this->childrenProcesses[$processId] = $processBootstrap;
+            $processInstance                     = $this->buildProcess($bootstrap);
+            $processId                           = $processInstance->run();
+            $this->childrenProcesses[$processId] = $processInstance;
 
-            $this->childrenProcessPipes[$pipe = $processBootstrap->getProcess()->pipe] = $processId;
-
-            swoole_event_add($pipe, $this->ioEvent());
+            $this->childrenProcessPipes[$pipe = $processInstance->getProcessPipe()] = $processId;
         }
-    }
-
-    protected function ioEvent(\Closure $callback = null)
-    {
-        if (is_null($callback)) {
-            if (is_null($this->ioEventCallback)) {
-                return $this->ioEventCallback = function () {
-                    //
-                };
-            }
-
-            return $this->ioEventCallback;
-        }
-
-        $this->ioEventCallback = $callback;
-
-        return $this;
     }
 
     /**
@@ -349,13 +352,12 @@ class ProcessMaster
                 if (SIGUSR1 === $this->signal || SIGKILL === $ret['signal']) {
                     $bootstrap = get_class($this->childrenProcesses[$ret['pid']]);
 
-                    /** @var ProcessHandler $processBootstrap */
-                    $processBootstrap                    = new $bootstrap($this);
-                    $processId                           = $processBootstrap->run();
-                    $this->childrenProcesses[$processId] = $processBootstrap;
+                    /** @var StandardProcess $processInstance */
+                    $processInstance                     = $this->buildProcess($bootstrap);
+                    $processId                           = $processInstance->run();
+                    $this->childrenProcesses[$processId] = $processInstance;
 
-                    $this->childrenProcessPipes[$pipe = $processBootstrap->getProcess()->pipe] = $processId;
-                    swoole_event_add($pipe, $this->ioEvent());
+                    $this->childrenProcessPipes[$pipe = $processInstance->getProcessPipe()] = $processId;
                 }
 
                 unset($this->childrenProcesses[$ret['pid']]);
