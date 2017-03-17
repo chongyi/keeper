@@ -8,6 +8,7 @@
 
 namespace Keeper\Base\Process;
 
+use Keeper\Base\Process\Exceptions\RuntimeException;
 use Swoole\Process;
 use Illuminate\Contracts\Container\Container;
 
@@ -55,15 +56,21 @@ abstract class StandardProcess
     final public function buildProcess()
     {
         return function (Process $process) {
-            if (!is_null($this->processMaster->userId)) {
-                posix_setuid($this->processMaster->userId);
-            }
+            try {
+                if (!is_null($this->processMaster->userId)) {
+                    posix_setuid($this->processMaster->userId);
+                }
 
-            if (!is_null($this->processMaster->groupId)) {
-                posix_setgid($this->processMaster->groupId);
+                if (!is_null($this->processMaster->groupId)) {
+                    posix_setgid($this->processMaster->groupId);
+                }
+
+                $this->runProcess($process);
+            } catch (\Exception $exception) {
+                throw new RuntimeException($this, $exception);
+            } catch (\Throwable $exception) {
+                throw new RuntimeException($this, $exception);
             }
-            
-            $this->runProcess($process);
         };
     }
 
