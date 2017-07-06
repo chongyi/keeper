@@ -8,7 +8,7 @@
 
 namespace Dybasedev\Keeper\Process;
 
-use Swoole\Process as SWProcess;
+use Swoole\Process as SwProcess;
 
 /**
  * Class Process
@@ -25,7 +25,7 @@ abstract class Process
     protected $processId;
 
     /**
-     * @var SWProcess
+     * @var SwProcess
      */
     protected $swooleProcess;
 
@@ -47,15 +47,15 @@ abstract class Process
     /**
      * Process constructor.
      *
-     * @param SWProcess $swooleProcess
+     * @param SwProcess $swooleProcess
      * @param int       $masterId
      */
-    public function __construct(SWProcess $swooleProcess = null, $masterId = null)
+    public function __construct(SwProcess $swooleProcess = null, $masterId = null)
     {
         // 若该进程启动是通过 swoole process 开启则应该收到此参数
         // 该值决定了其是否为一个子进程
         // master id 和 swoole process 两个值原则上应该同时提供，但此处不做限制
-        $this->SWProcess = $swooleProcess;
+        $this->SwProcess = $swooleProcess;
         $this->masterId  = $masterId;
 
         $this->setOwnerUserId(posix_getuid())->setOwnerGroupId(posix_getgid());
@@ -126,11 +126,11 @@ abstract class Process
     /**
      * 获取该进程 Swoole\Process 实例
      *
-     * @return SWProcess
+     * @return SwProcess
      */
     public function getSwooleProcess()
     {
-        return $this->SWProcess;
+        return $this->SwProcess;
     }
 
     /**
