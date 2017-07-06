@@ -64,7 +64,7 @@ class ProcessMaster
     /**
      * @var string[]
      */
-    protected $bootstrapLoaders = [];
+    protected $processProviders = [];
 
     /**
      * @var string
@@ -263,29 +263,65 @@ class ProcessMaster
     }
 
     /**
+     * @param StandardProcess $process
+     *
+     * @return $this
+     */
+    protected function appendProcessInstance(StandardProcess $process)
+    {
+        if (!$process->running) {
+            $process->run();
+        }
+
+        $pipe = $process->getProcessPipe();
+
+        $this->childrenProcesses[$process->getProcessId()] = $process;
+        $this->childrenProcessPipes[$pipe] = $process->getProcessId();
+
+        swoole_event_add($pipe, $this->ioEventHandle());
+
+        return $this;
+    }
+
+    /**
+     * @param int $processId
+     *
+     * @return ProcessMaster
+     */
+    protected function reloadProcessInstance($processId)
+    {
+        $provider = get_class($this->childrenProcesses[$processId]);
+
+        return $this->appendProcessInstance($this->buildProcess($provider));
+    }
+
+    /**
      * 初始化加载过程
      */
     protected function bootstrap()
     {
-        foreach ($this->bootstrapLoaders as $bootstrap) {
-            $processInstance                     = $this->buildProcess($bootstrap);
-            $processId                           = $processInstance->run();
-            $this->childrenProcesses[$processId] = $processInstance;
-
-            $this->childrenProcessPipes[$pipe = $processInstance->getProcessPipe()] = $processId;
+        foreach ($this->processProviders as $bootstrap) {
+            $this->appendProcessInstance($this->buildProcess($bootstrap));
         }
+    }
+
+    protected function ioEventHandle()
+    {
+        return function ($pipe) {
+
+        };
     }
 
     /**
      * 设置启动器加载序列
      *
-     * @param string[] $bootstrapLoaders
+     * @param string[] $providers
      *
      * @return $this
      */
-    public function bootstrapLoader(array $bootstrapLoaders)
+    public function providers(array $providers)
     {
-        $this->bootstrapLoaders = $bootstrapLoaders;
+        $this->processProviders = $providers;
 
         return $this;
     }
@@ -350,18 +386,13 @@ class ProcessMaster
         return function () {
             while ($ret = Process::wait(false)) {
                 if (SIGUSR1 === $this->signal || SIGKILL === $ret['signal']) {
-                    $bootstrap = get_class($this->childrenProcesses[$ret['pid']]);
-
-                    /** @var StandardProcess $processInstance */
-                    $processInstance                     = $this->buildProcess($bootstrap);
-                    $processId                           = $processInstance->run();
-                    $this->childrenProcesses[$processId] = $processInstance;
-
-                    $this->childrenProcessPipes[$pipe = $processInstance->getProcessPipe()] = $processId;
+                    $this->reloadProcessInstance($ret['pid']);
                 }
 
                 unset($this->childrenProcesses[$ret['pid']]);
-                unset($this->childrenProcessPipes[array_search($ret['pid'], $this->childrenProcessPipes)]);
+                unset($this->childrenProcessPipes[$pipe = array_search($ret['pid'], $this->childrenProcessPipes)]);
+
+                swoole_event_del($pipe);
             }
 
             if (SIGTERM === $this->signal || SIGKILL === $this->signal) {
@@ -433,8 +464,8 @@ class ProcessMaster
             $this->user($config['user']);
         }
 
-        if (isset($config['bootstrap'])) {
-            $this->bootstrapLoader($config['bootstrap']);
+        if (isset($config['providers'])) {
+            $this->providers($config['providers']);
         }
 
         return $this;

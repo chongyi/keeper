@@ -37,6 +37,11 @@ abstract class StandardProcess
     protected $processId;
 
     /**
+     * @var bool
+     */
+    public $running = false;
+
+    /**
      * @param ProcessMaster $processMaster
      *
      * @return $this
@@ -81,9 +86,12 @@ abstract class StandardProcess
      */
     final public function run()
     {
-        $this->process = new Process($this->buildProcess());
+        $this->process = new Process($this->buildProcess(), true);
 
-        return $this->processId = $this->process->start();
+        $this->processId = $this->process->start();
+        $this->running   = true;
+
+        return $this->processId;
     }
 
     /**
