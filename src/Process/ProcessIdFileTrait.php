@@ -120,6 +120,19 @@ trait ProcessIdFileTrait
     }
 
     /**
+     * 清理 PID 文件
+     */
+    private function clearProcessIdFile()
+    {
+        if ($this->processIdFileDescriptor) {
+            flock($this->processIdFileDescriptor, LOCK_UN);
+            fclose($this->processIdFileDescriptor);
+
+            unlink($this->processIdFile);
+        }
+    }
+
+    /**
      * 设置 PID 文件位置
      *
      * @param string $processIdFile

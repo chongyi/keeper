@@ -35,7 +35,7 @@ class ProcessController
     protected $terminate = false;
 
     /**
-     * @var Process[]
+     * @var array
      */
     protected $processes;
 
@@ -155,6 +155,42 @@ class ProcessController
 
         foreach ($this->processes as $pid => $process) {
             SwProcess::kill($pid);
+        }
+    }
+
+    public function reload()
+    {
+        foreach ($this->processes as $processId => list($process, $options)) {
+            if (isset($options['on_reload'])) {
+                if (isset($options['on_reload']['signal'])) {
+                    $process->kill($options['on_reload']['signal']);
+                    continue;
+                } elseif ($options['on_reload'] === false) {
+                    continue;
+                }
+            }
+
+            if ($this->isAutoReload($options)) {
+                $process->kill(SIGUSR1);
+            }
+        }
+    }
+
+    public function reopen()
+    {
+        foreach ($this->processes as $processId => list($process, $options)) {
+            if (isset($options['on_reopen'])) {
+                if (isset($options['on_reopen']['signal'])) {
+                    $process->kill($options['on_reopen']['signal']);
+                    continue;
+                } elseif ($options['on_reopen'] === false) {
+                    continue;
+                }
+            }
+
+            if ($this->isAutoReload($options)) {
+                $process->kill();
+            }
         }
     }
 }
