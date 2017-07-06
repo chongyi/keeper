@@ -56,13 +56,27 @@ class ProcessController
      *
      * @param string $process 注册的进程类名
      *
+     * @param array  $options
+     *
      * @return $this
      */
-    public function registerProcess($process)
+    public function registerProcess($process, array $options = [])
     {
-        $this->registeredProcesses[] = $process;
+        $this->registeredProcesses[] = [$process, $options];
 
         return $this;
+    }
+
+    /**
+     * 批量注册进程类
+     *
+     * @param \Iterator|array $processes
+     */
+    public function registerProcesses($processes)
+    {
+        foreach ($processes as $process => $options) {
+            $this->registerProcess($process, $options);
+        }
     }
 
     /**
@@ -70,8 +84,8 @@ class ProcessController
      */
     public function bootstrap()
     {
-        foreach ($this->registeredProcesses as $process) {
-            $this->buildProcess($process);
+        foreach ($this->registeredProcesses as list($process, $options)) {
+            $this->buildProcess($process, $options);
         }
     }
 
@@ -79,10 +93,11 @@ class ProcessController
      * 构建进程
      *
      * @param string $processName
+     * @param array  $options
      */
-    private function buildProcess($processName)
+    private function buildProcess($processName, array $options)
     {
-        $swProcess = new SwProcess(function (Process $swProcess) use ($processName) {
+        $swProcess = new SwProcess(function (SwProcess $swProcess) use ($processName) {
             /** @var Process $process */
             $process = new $processName($swProcess, $this->masterProcess->getProcessId());
 
@@ -90,7 +105,7 @@ class ProcessController
         });
 
         $swProcess->start();
-        $this->processes[$swProcess->pid] = $processName;
+        $this->processes[$swProcess->pid] = [$processName, $options];
     }
 
     /**
@@ -106,11 +121,11 @@ class ProcessController
                     $ret = SwProcess::wait(true);
 
                     if ($ret) {
-                        $name = $this->processes[$ret['pid']];
+                        list($name, $options) = $this->processes[$ret['pid']];
                         unset($this->processes[$ret['pid']]);
 
-                        if (!$this->terminate) {
-                            $this->buildProcess($name);
+                        if (!$this->terminate && $this->isAutoReload($options)) {
+                            $this->buildProcess($name, $options);
                         }
                     }
                 } else {
@@ -120,6 +135,15 @@ class ProcessController
 
             exit(0);
         };
+    }
+
+    private function isAutoReload(array $options)
+    {
+        if (!isset($options['auto_reload']) || $options['auto_reload'] === true) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
