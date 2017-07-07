@@ -140,9 +140,9 @@ abstract class StandardMasterProcess extends Process
             }
 
             $this->run();
-        } catch (RuntimeException $e) {
+        } catch (SingletonException $e) {
             $this->shutdownRunningInstance = true;
-            $this->restart();
+            $this->restart(true);
         }
     }
 }
