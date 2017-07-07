@@ -27,6 +27,11 @@ abstract class StandardMasterProcess extends Process
     protected $processController = null;
 
     /**
+     * @var bool
+     */
+    protected $running = false;
+
+    /**
      * @inheritDoc
      */
     public function process()
@@ -37,6 +42,7 @@ abstract class StandardMasterProcess extends Process
             SwProcess::daemon(true, true);
         }
 
+        register_shutdown_function($this->onTerminating());
         SwProcess::signal(SIGTERM, $this->onTerminating());
         SwProcess::signal(SIGUSR1, $this->onReopen());
         SwProcess::signal(SIGUSR2, $this->onReload());
@@ -46,6 +52,8 @@ abstract class StandardMasterProcess extends Process
 
         $this->processController->registerProcesses($this->getChildrenProcesses());
         $this->processController->bootstrap();
+
+        $this->running = true;
     }
 
     /**
@@ -61,9 +69,11 @@ abstract class StandardMasterProcess extends Process
     private function onTerminating()
     {
         return function () {
-            $this->clearProcessIdFile();
-
-            $this->processController->terminate();
+            if ($this->running) {
+                $this->clearProcessIdFile();
+                $this->processController->terminate();
+                $this->running = false;
+            }
         };
     }
 
