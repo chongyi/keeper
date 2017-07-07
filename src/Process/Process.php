@@ -142,4 +142,11 @@ abstract class Process
     {
         return $this->masterId;
     }
+
+    protected function daemon()
+    {
+        SwProcess::daemon(true, true);
+
+        $this->processId = posix_getpid();
+    }
 }

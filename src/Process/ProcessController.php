@@ -170,9 +170,7 @@ class ProcessController
                 }
             }
 
-            if ($this->isAutoReload($options)) {
-                $process->kill(SIGUSR1);
-            }
+            $process->kill(SIGUSR1);
         }
     }
 

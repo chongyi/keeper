@@ -8,6 +8,7 @@
 
 namespace Dybasedev\Keeper\Process;
 
+use Dybasedev\Keeper\Process\Exceptions\SingletonException;
 use Swoole\Process;
 use Dybasedev\Keeper\Process\Exceptions\RuntimeException;
 
@@ -34,12 +35,10 @@ trait ProcessIdFileTrait
     protected $shutdownRunningInstance = false;
 
     /**
-     * 创建 PID 文件
+     * 刷新 PID 文件
      */
-    private function createProcessIdFile()
+    private function freshProcessIdFile()
     {
-        $this->singleGuarantee();
-
         ftruncate($this->processIdFileDescriptor, 0);
         fwrite($this->processIdFileDescriptor, $this->processId);
     }
@@ -47,7 +46,7 @@ trait ProcessIdFileTrait
     /**
      * 检查以保证进程单例
      *
-     * @throws RuntimeException
+     * @throws SingletonException
      */
     private function singleGuarantee()
     {
@@ -56,7 +55,7 @@ trait ProcessIdFileTrait
 
             if ($runningProcessId !== false) {
                 if (!$this->shutdownRunningInstance) {
-                    throw new RuntimeException();
+                    throw (new SingletonException())->setRunningInstanceProcessId($runningProcessId);
                 }
 
                 Process::kill($runningProcessId);

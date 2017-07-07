@@ -10,6 +10,7 @@ namespace Dybasedev\Keeper\Process;
 
 use Dybasedev\Keeper\Process\Exceptions\OperationRejectedException;
 use Dybasedev\Keeper\Process\Exceptions\RuntimeException;
+use Dybasedev\Keeper\Process\Exceptions\SingletonException;
 use Swoole\Process as SwProcess;
 
 abstract class StandardMasterProcess extends Process
@@ -36,23 +37,30 @@ abstract class StandardMasterProcess extends Process
      */
     public function process()
     {
-        $this->createProcessIdFile();
+        try {
+            $this->singleGuarantee();
 
-        if ($this->daemon) {
-            SwProcess::daemon(true, true);
+            if ($this->daemon) {
+                $this->daemon();
+            }
+
+            $this->freshProcessIdFile();
+
+            SwProcess::signal(SIGTERM, $this->onTerminating());
+            SwProcess::signal(SIGUSR1, $this->onReopen());
+            SwProcess::signal(SIGUSR2, $this->onReload());
+
+            $this->processController = new ProcessController($this);
+            SwProcess::signal(SIGCHLD, $this->processController->getChildrenProcessShutdownHandler());
+
+            $this->processController->registerProcesses($this->getChildrenProcesses());
+            $this->processController->bootstrap();
+
+            $this->running = true;
+        } catch (SingletonException $e) {
+            fwrite(STDERR, "Have running instance (PID: {$e->runningInstanceProcessId}). Nothing to do.\n");
+            exit(1);
         }
-
-        SwProcess::signal(SIGTERM, $this->onTerminating());
-        SwProcess::signal(SIGUSR1, $this->onReopen());
-        SwProcess::signal(SIGUSR2, $this->onReload());
-
-        $this->processController = new ProcessController($this);
-        SwProcess::signal(SIGCHLD, $this->processController->getChildrenProcessShutdownHandler());
-
-        $this->processController->registerProcesses($this->getChildrenProcesses());
-        $this->processController->bootstrap();
-
-        $this->running = true;
     }
 
     /**
