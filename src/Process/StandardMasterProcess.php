@@ -144,7 +144,7 @@ abstract class StandardMasterProcess extends Process
             $this->shutdownRunningInstance = true;
             $this->restart(true);
         } catch (OperationRejectedException $e) {
-            fwrite(STDERR, 'No instance can be restart.');
+            fwrite(STDERR, "No instance can be restart.\n");
             exit(2);
         }
     }
