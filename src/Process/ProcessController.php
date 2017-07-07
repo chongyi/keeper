@@ -94,6 +94,8 @@ class ProcessController
      *
      * @param string $processName
      * @param array  $options
+     *
+     * @return int
      */
     private function buildProcess($processName, array $options)
     {
@@ -106,6 +108,8 @@ class ProcessController
 
         $swProcess->start();
         $this->processes[$swProcess->pid] = [$processName, $options];
+
+        return $swProcess->pid;
     }
 
     /**
@@ -125,6 +129,10 @@ class ProcessController
                         unset($this->processes[$ret['pid']]);
 
                         if (!$this->terminate && $this->isAutoReload($options)) {
+                            if ($this->isTemporaryAutoReload($options)) {
+                                unset($options['temp_auto_reload']);
+                            }
+
                             $this->buildProcess($name, $options);
                         }
                     }
@@ -139,7 +147,19 @@ class ProcessController
 
     private function isAutoReload(array $options)
     {
-        if (!isset($options['auto_reload']) || $options['auto_reload'] === true) {
+        if (!isset($options['auto_reload']) ||
+            $options['auto_reload'] === true ||
+            $this->isTemporaryAutoReload($options)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function isTemporaryAutoReload(array $options)
+    {
+        if (isset($options['temp_auto_reload']) && $options['temp_auto_reload']) {
             return true;
         }
 
@@ -163,14 +183,14 @@ class ProcessController
         foreach ($this->processes as $processId => list($process, $options)) {
             if (isset($options['on_reload'])) {
                 if (isset($options['on_reload']['signal'])) {
-                    $process->kill($options['on_reload']['signal']);
+                    SwProcess::kill($processId, $options['on_reload']['signal']);
                     continue;
                 } elseif ($options['on_reload'] === false) {
                     continue;
                 }
             }
 
-            $process->kill(SIGUSR1);
+            SwProcess::kill($processId, SIGUSR1);
         }
     }
 
@@ -179,15 +199,18 @@ class ProcessController
         foreach ($this->processes as $processId => list($process, $options)) {
             if (isset($options['on_reopen'])) {
                 if (isset($options['on_reopen']['signal'])) {
-                    $process->kill($options['on_reopen']['signal']);
+                    SwProcess::kill($processId, $options['on_reopen']['signal']);
                     continue;
                 } elseif ($options['on_reopen'] === false) {
                     continue;
                 }
             }
 
-            if ($this->isAutoReload($options)) {
-                $process->kill();
+            if (!$this->isAutoReload($options)) {
+                $options['temp_auto_reload'] = true;
+                $this->processes[$processId] = [$process, $options];
+
+                SwProcess::kill($processId);
             }
         }
     }
