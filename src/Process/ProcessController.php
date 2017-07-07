@@ -8,6 +8,7 @@
 
 namespace Dybasedev\Keeper\Process;
 
+use Dybasedev\Keeper\Process\Exceptions\RuntimeException;
 use Swoole\Process as SwProcess;
 
 /**
@@ -35,7 +36,7 @@ class ProcessController
     protected $terminate = false;
 
     /**
-     * @var array
+     * @var array|Process[]
      */
     protected $processes;
 
@@ -85,31 +86,37 @@ class ProcessController
     public function bootstrap()
     {
         foreach ($this->registeredProcesses as list($process, $options)) {
-            $this->buildProcess($process, $options);
+            $this->buildProcess($this->makeProcess($process, $options));
         }
     }
 
     /**
      * 构建进程
      *
+     * @param Process $process
+     *
+     * @return int
+     *
+     * @throws RuntimeException
+     */
+    private function buildProcess($process)
+    {
+        $process->runWithProcessController($this->masterProcess->getProcessId());
+
+        $this->processes[$process->getProcessId()] = $process;
+
+        return $process->getProcessId();
+    }
+
+    /**
      * @param string $processName
      * @param array  $options
      *
-     * @return int
+     * @return Process
      */
-    private function buildProcess($processName, array $options)
+    private function makeProcess($processName, array $options)
     {
-        $swProcess = new SwProcess(function (SwProcess $swProcess) use ($processName) {
-            /** @var Process $process */
-            $process = new $processName($swProcess, $this->masterProcess->getProcessId());
-
-            $process->run();
-        });
-
-        $swProcess->start();
-        $this->processes[$swProcess->pid] = [$processName, $options];
-
-        return $swProcess->pid;
+        return new $processName($options);
     }
 
     /**
@@ -120,50 +127,21 @@ class ProcessController
     public function getChildrenProcessShutdownHandler()
     {
         return function () {
-            while (true) {
-                if (count($this->processes)) {
-                    $ret = SwProcess::wait(true);
+            while ($ret = SwProcess::wait(false)) {
+                if ($ret) {
+                    $process = clone $this->processes[$ret['pid']];
+                    unset($this->processes[$ret['pid']]);
 
-                    if ($ret) {
-                        list($name, $options) = $this->processes[$ret['pid']];
-                        unset($this->processes[$ret['pid']]);
-
-                        if (!$this->terminate && $this->isAutoReload($options)) {
-                            if ($this->isTemporaryAutoReload($options)) {
-                                unset($options['temp_auto_reload']);
-                            }
-
-                            $this->buildProcess($name, $options);
-                        }
+                    if (!$this->terminate && $process->isAutoReload()) {
+                        $this->buildProcess($process);
                     }
-                } else {
-                    break;
                 }
             }
 
-            exit(0);
+            if (!count($this->processes)) {
+                exit(0);
+            }
         };
-    }
-
-    private function isAutoReload(array $options)
-    {
-        if (!isset($options['auto_reload']) ||
-            $options['auto_reload'] === true ||
-            $this->isTemporaryAutoReload($options)
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private function isTemporaryAutoReload(array $options)
-    {
-        if (isset($options['temp_auto_reload']) && $options['temp_auto_reload']) {
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -174,44 +152,31 @@ class ProcessController
         $this->terminate = true;
 
         foreach ($this->processes as $pid => $process) {
-            SwProcess::kill($pid);
+            $process->kill();
         }
     }
 
+    /**
+     * 重新启动所有子进程
+     *
+     * 通过信号（默认 USR1）通知子进程自行重启
+     */
     public function reload()
     {
-        foreach ($this->processes as $processId => list($process, $options)) {
-            if (isset($options['on_reload'])) {
-                if (isset($options['on_reload']['signal'])) {
-                    SwProcess::kill($processId, $options['on_reload']['signal']);
-                    continue;
-                } elseif ($options['on_reload'] === false) {
-                    continue;
-                }
-            }
-
-            SwProcess::kill($processId, SIGUSR1);
+        foreach ($this->processes as $processId => $process) {
+            $process->reload();
         }
     }
 
+    /**
+     * 重新加载所有子进程
+     *
+     * 关闭并重新开启所有的子进程
+     */
     public function reopen()
     {
-        foreach ($this->processes as $processId => list($process, $options)) {
-            if (isset($options['on_reopen'])) {
-                if (isset($options['on_reopen']['signal'])) {
-                    SwProcess::kill($processId, $options['on_reopen']['signal']);
-                    continue;
-                } elseif ($options['on_reopen'] === false) {
-                    continue;
-                }
-            }
-
-            if (!$this->isAutoReload($options)) {
-                $options['temp_auto_reload'] = true;
-                $this->processes[$processId] = [$process, $options];
-
-                SwProcess::kill($processId);
-            }
+        foreach ($this->processes as $processId => $process) {
+            $process->reopen();
         }
     }
 }

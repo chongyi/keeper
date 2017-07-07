@@ -9,10 +9,16 @@
 namespace Dybasedev\Keeper\Process;
 
 use Dybasedev\Keeper\Process\Exceptions\OperationRejectedException;
-use Dybasedev\Keeper\Process\Exceptions\RuntimeException;
 use Dybasedev\Keeper\Process\Exceptions\SingletonException;
 use Swoole\Process as SwProcess;
 
+/**
+ * Class StandardMasterProcess
+ *
+ * 标准主管理进程
+ *
+ * @package Dybasedev\Keeper\Process
+ */
 abstract class StandardMasterProcess extends Process
 {
     use ProcessIdFileTrait;
