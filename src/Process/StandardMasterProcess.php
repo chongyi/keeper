@@ -42,7 +42,6 @@ abstract class StandardMasterProcess extends Process
             SwProcess::daemon(true, true);
         }
 
-        register_shutdown_function($this->onTerminating());
         SwProcess::signal(SIGTERM, $this->onTerminating());
         SwProcess::signal(SIGUSR1, $this->onReopen());
         SwProcess::signal(SIGUSR2, $this->onReload());
