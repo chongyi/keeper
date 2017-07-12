@@ -8,6 +8,7 @@
 
 namespace Dybasedev\Keeper\Process;
 
+use Closure;
 use Dybasedev\Keeper\Process\Exceptions\OperationRejectedException;
 use Dybasedev\Keeper\Process\Exceptions\SingletonException;
 use Swoole\Process as SwProcess;
@@ -39,12 +40,12 @@ abstract class ProcessManager extends Process
     private $running = false;
 
     /**
-     * @var array|\Closure[]
+     * @var array|Closure[]
      */
     private $terminating = [];
 
     /**
-     * @var array|\Closure[]
+     * @var array|Closure[]
      */
     private $prepared = [];
 
@@ -82,7 +83,11 @@ abstract class ProcessManager extends Process
     abstract protected function onPreparing();
 
     /**
+     * 注册一个子进程实例
+     *
      * @param Process $process
+     *
+     * @return $this
      */
     public function registerChildProcess(Process $process)
     {
@@ -90,22 +95,50 @@ abstract class ProcessManager extends Process
             $this->processController = new ProcessController($this);
             SwProcess::signal(SIGCHLD, $this->processController->getChildrenProcessShutdownHandler());
 
-            $this->prepared[] = function () {
+            $this->pushPreparedCallback(function () {
                 $this->processController->bootstrap();
-            };
+            });
 
-            $this->terminating[]     = function () {
+            $this->pushTerminatingCallback(function () {
                 $this->processController->terminate();
-            };
+            });
         }
 
         $this->processController->registerProcess($process);
+
+        return $this;
+    }
+
+    /**
+     * 压入一个预处理后的回调
+     *
+     * @param Closure $callback
+     *
+     * @return $this
+     */
+    protected function pushPreparedCallback(Closure $callback)
+    {
+        $this->prepared[] = $callback;
+        return $this;
+    }
+
+    /**
+     * 压入一个终止时的回调
+     *
+     * @param Closure $callback
+     *
+     * @return $this
+     */
+    protected function pushTerminatingCallback(Closure $callback)
+    {
+        $this->terminating[] = $callback;
+        return $this;
     }
 
     /**
      * 终止事件
      *
-     * @return \Closure
+     * @return Closure
      */
     private function onTerminating()
     {
@@ -126,7 +159,7 @@ abstract class ProcessManager extends Process
      *
      * 默认该操作会向所有子进程发起 USR1 信号，根据子进程注册参数会有差异
      *
-     * @return \Closure
+     * @return Closure
      */
     private function onReload()
     {
@@ -140,7 +173,7 @@ abstract class ProcessManager extends Process
      *
      * 该操作会将所有子进程关闭并重新开启（或根据配置发起信号）
      *
-     * @return \Closure
+     * @return Closure
      */
     private function onReopen()
     {
