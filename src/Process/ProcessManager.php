@@ -1,6 +1,6 @@
 <?php
 /**
- * StandardMasterProcess.php
+ * ProcessManager.php
  *
  * @copyright Chongyi <xpz3847878@163.com>
  * @link      https://insp.top
@@ -13,13 +13,13 @@ use Dybasedev\Keeper\Process\Exceptions\SingletonException;
 use Swoole\Process as SwProcess;
 
 /**
- * Class StandardMasterProcess
+ * Class ProcessManager
  *
  * 标准主管理进程
  *
  * @package Dybasedev\Keeper\Process
  */
-abstract class StandardMasterProcess extends Process
+abstract class ProcessManager extends Process
 {
     use ProcessIdFileTrait;
 
@@ -29,14 +29,14 @@ abstract class StandardMasterProcess extends Process
     protected $daemon = false;
 
     /**
-     * @var ProcessController
+     * @var ProcessController 子进程控制器
      */
-    protected $processController = null;
+    private $processController = null;
 
     /**
      * @var bool
      */
-    protected $running = false;
+    private $running = false;
 
     /**
      * @inheritDoc
