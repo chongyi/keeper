@@ -46,16 +46,15 @@ class Http extends Process
 
 ```php
 <?php
-use Dybasedev\Keeper\Process\StandardMasterProcess;
+use Dybasedev\Keeper\Process\ProcessManager;
 
-class Master extends StandardMasterProcess
+class Master extends ProcessManager
 {
-    protected function getChildrenProcesses()
+    protected function onPreparing() 
     {
-        return [
-            Http::class => ['auto_reload' => true],
-        ];
+        $this->registerChildProcess(new Http(['auto_reload' => false]));
     }
+    
 }
 ```
 
