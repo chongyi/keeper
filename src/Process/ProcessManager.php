@@ -39,6 +39,16 @@ abstract class ProcessManager extends Process
     private $running = false;
 
     /**
+     * @var array|\Closure[]
+     */
+    private $terminating = [];
+
+    /**
+     * @var array|\Closure[]
+     */
+    private $prepared = [];
+
+    /**
      * @inheritDoc
      */
     public function process()
@@ -56,11 +66,11 @@ abstract class ProcessManager extends Process
             SwProcess::signal(SIGUSR1, $this->onReopen());
             SwProcess::signal(SIGUSR2, $this->onReload());
 
-            $this->processController = new ProcessController($this);
-            SwProcess::signal(SIGCHLD, $this->processController->getChildrenProcessShutdownHandler());
+            $this->onPreparing();
 
-            $this->processController->registerProcesses($this->getChildrenProcesses());
-            $this->processController->bootstrap();
+            foreach ($this->prepared as $callback) {
+                $callback();
+            }
 
             $this->running = true;
         } catch (SingletonException $e) {
@@ -69,10 +79,28 @@ abstract class ProcessManager extends Process
         }
     }
 
+    abstract protected function onPreparing();
+
     /**
-     * @return \Iterator|array
+     * @param Process $process
      */
-    abstract protected function getChildrenProcesses();
+    public function registerChildProcess(Process $process)
+    {
+        if (is_null($this->processController)) {
+            $this->processController = new ProcessController($this);
+            SwProcess::signal(SIGCHLD, $this->processController->getChildrenProcessShutdownHandler());
+
+            $this->prepared[] = function () {
+                $this->processController->bootstrap();
+            };
+
+            $this->terminating[]     = function () {
+                $this->processController->terminate();
+            };
+        }
+
+        $this->processController->registerProcess($process);
+    }
 
     /**
      * 终止事件
@@ -83,8 +111,11 @@ abstract class ProcessManager extends Process
     {
         return function () {
             if ($this->running) {
+                foreach ($this->terminating as $callback) {
+                    $callback();
+                }
+
                 $this->clearProcessIdFile();
-                $this->processController->terminate();
                 $this->running = false;
             }
         };

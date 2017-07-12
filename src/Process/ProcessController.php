@@ -55,15 +55,18 @@ class ProcessController
      *
      * 该类应该继承自 Dybasedev\Keeper\Process\Process
      *
-     * @param string $process 注册的进程类名
-     *
+     * @param string|Process $process 注册的进程实例或类名，当是一个实例时，第二个参数将被忽略
      * @param array  $options
      *
      * @return $this
      */
     public function registerProcess($process, array $options = [])
     {
-        $this->registeredProcesses[] = [$process, $options];
+        if ($process instanceof Process) {
+            $this->registeredProcesses[] = $process;
+        } else {
+            $this->registeredProcesses[] = [$process, $options];
+        }
 
         return $this;
     }
@@ -75,8 +78,12 @@ class ProcessController
      */
     public function registerProcesses($processes)
     {
-        foreach ($processes as $process => $options) {
-            $this->registerProcess($process, $options);
+        foreach ($processes as $describer => $body) {
+            if ($body instanceof Process) {
+                $this->registerProcess($body);
+            } else {
+                $this->registerProcess($describer, $body);
+            }
         }
     }
 
@@ -85,8 +92,13 @@ class ProcessController
      */
     public function bootstrap()
     {
-        foreach ($this->registeredProcesses as list($process, $options)) {
-            $this->buildProcess($this->makeProcess($process, $options));
+        foreach ($this->registeredProcesses as $process) {
+            if (!$process instanceof Process) {
+                list($process, $options) = $process;
+                $process = $this->makeProcess($process, $options);
+            }
+
+            $this->buildProcess($process);
         }
     }
 
@@ -99,7 +111,7 @@ class ProcessController
      *
      * @throws RuntimeException
      */
-    private function buildProcess($process)
+    private function buildProcess(Process $process)
     {
         $process->runWithProcessController($this->masterProcess->getProcessId());
 
