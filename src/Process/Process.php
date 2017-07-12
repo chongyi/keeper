@@ -8,6 +8,9 @@
 
 namespace Dybasedev\Keeper\Process;
 
+use Dybasedev\Keeper\Process\Exceptions\OperationRejectedException;
+use Dybasedev\Keeper\Process\Interfaces\PipeProcess;
+use Dybasedev\Keeper\Process\Interfaces\StandardProcess;
 use Swoole\Process as SwProcess;
 
 /**
@@ -17,7 +20,7 @@ use Swoole\Process as SwProcess;
  *
  * @package Dybasedev\Keeper\Process
  */
-abstract class Process
+abstract class Process implements StandardProcess
 {
     /**
      * @var int Current process id.
@@ -55,6 +58,11 @@ abstract class Process
     protected $withProcessController = false;
 
     /**
+     * @var resource
+     */
+    public $pipe;
+
+    /**
      * Process constructor.
      *
      * @param array $options
@@ -63,11 +71,6 @@ abstract class Process
     {
         $this->options = $options;
     }
-
-    /**
-     * @return mixed
-     */
-    abstract public function process();
 
     /**
      * @param int $ownerGroupId
@@ -123,15 +126,24 @@ abstract class Process
             unset($this->options['temp_auto_reload']);
         }
 
-        $this->swooleProcess = new SwProcess(function (SwProcess $process) use ($masterId) {
+        $process = function (SwProcess $process) use ($masterId) {
             $this->swooleProcess = $process;
             $this->masterId      = $masterId;
 
             $this->run();
-        });
+        };
+
+        if ($this instanceof StandardProcess) {
+            $this->swooleProcess = new SwProcess($process);
+        } elseif ($this instanceof PipeProcess) {
+            $this->swooleProcess = new SwProcess($process, $this->isRedirectStdIO(), $this->getPipeType());
+        } else {
+            throw new OperationRejectedException();
+        }
 
         $this->processId = $this->swooleProcess->start();
         $this->masterId  = $masterId;
+        $this->pipe      = $this->swooleProcess->pipe;
 
         return $this;
     }
