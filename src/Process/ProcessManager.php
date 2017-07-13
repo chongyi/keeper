@@ -218,4 +218,19 @@ abstract class ProcessManager extends Process
             exit(2);
         }
     }
+
+    /**
+     * 停止
+     */
+    public function stop()
+    {
+        $runningProcessId = $this->getProcessIdFromFile();
+
+        if ($runningProcessId === false) {
+            fwrite(STDERR, "No running instance\n");
+            exit(4);
+        }
+
+        SwProcess::kill($runningProcessId);
+    }
 }

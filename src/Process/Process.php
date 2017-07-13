@@ -98,39 +98,28 @@ abstract class Process implements StandardProcess
 
     /**
      * 启动进程
-     */
-    public function run()
-    {
-        // 对于超级管理员用户而言，该操作才会生效。
-        // 该操作调用了 setuid 和 setgid 作改变当前进程的实际用户 ID。
-        $this->changeCurrentOwner();
-
-        $this->processId = posix_getpid();
-
-        // 调用实际进程处理逻辑
-        $this->process();
-    }
-
-    /**
-     * 通过控制器启动
      *
      * @param int $masterId
      *
      * @return $this
      */
-    public function runWithProcessController($masterId)
+    public function run($masterId = null)
     {
-        $this->withProcessController = true;
-
         if ($this->isTemporaryAutoReload()) {
-            unset($this->options['temp_auto_reload']);
+            $this->clearTemporaryAutoLoadStatus();
         }
 
         $process = function (SwProcess $process) use ($masterId) {
             $this->swooleProcess = $process;
+            $this->processId     = $process->pid;
             $this->masterId      = $masterId;
 
-            $this->run();
+            // 对于超级管理员用户而言，该操作才会生效。
+            // 该操作调用了 setuid 和 setgid 作改变当前进程的实际用户 ID。
+            $this->changeCurrentOwner();
+
+            // 调用实际进程处理逻辑
+            $this->process();
         };
 
         if ($this instanceof StandardProcess) {
@@ -146,6 +135,28 @@ abstract class Process implements StandardProcess
         $this->pipe      = $this->swooleProcess->pipe;
 
         return $this;
+    }
+
+    /**
+     * 通过控制器启动
+     *
+     * @param int $masterId
+     *
+     * @return $this
+     */
+    public function runWithProcessController($masterId)
+    {
+        $this->withProcessController = true;
+
+        return $this->run($masterId);
+    }
+
+    /**
+     * 清理临时自动重载状态
+     */
+    public function clearTemporaryAutoLoadStatus()
+    {
+        unset($this->options['temp_auto_reload']);
     }
 
     /**
