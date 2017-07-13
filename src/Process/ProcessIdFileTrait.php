@@ -35,12 +35,19 @@ trait ProcessIdFileTrait
     protected $shutdownRunningInstance = false;
 
     /**
+     * 获取进程 ID
+     *
+     * @return int
+     */
+    abstract public function getProcessId();
+
+    /**
      * 刷新 PID 文件
      */
     private function freshProcessIdFile()
     {
         ftruncate($this->processIdFileDescriptor, 0);
-        fwrite($this->processIdFileDescriptor, $this->processId);
+        fwrite($this->processIdFileDescriptor, $this->getProcessId());
     }
 
     /**
