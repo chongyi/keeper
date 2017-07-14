@@ -1,5 +1,9 @@
 # Keeper
 
+[![Build Status](https://travis-ci.org/chongyi/keeper.svg?branch=master)](https://travis-ci.org/chongyi/keeper)
+[![Latest Stable Version](https://poser.pugx.org/chongyi/keeper/v/stable)](https://packagist.org/packages/chongyi/keeper)
+[![License](https://poser.pugx.org/chongyi/keeper/license)](https://packagist.org/packages/chongyi/keeper)
+
 基于 Swoole 的后台多进程程序脚手架，提供了基本的控制功能。在此基础你将有更多可能使用 PHP 完成一些在 FPM 环境下无法实现的功能。
 
 ## 环境要求
