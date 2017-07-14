@@ -44,8 +44,8 @@ class Request extends SymfonyRequest
         if (isset($request->header)) {
             $keys = array_map(function ($value) {
                 return 'HTTP_' . str_replace('-', '_', strtoupper($value));
-            }, $request->header);
-            array_merge($server, array_combine($keys, array_values($request->header)));
+            }, array_keys($request->header));
+            $server = array_merge($server, array_combine($keys, array_values($request->header)));
         }
 
         return new static($get, $post, [], $cookie, $files, $server);
