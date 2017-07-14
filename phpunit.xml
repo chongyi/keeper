@@ -5,5 +5,8 @@
         <testsuite name="Process Module Test">
             <directory>./tests/Process/</directory>
         </testsuite>
+        <testsuite name="Http Module Test">
+            <directory>./tests/Http/</directory>
+        </testsuite>
     </testsuites>
 </phpunit>
