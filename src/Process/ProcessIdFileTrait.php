@@ -65,8 +65,13 @@ trait ProcessIdFileTrait
                     throw (new SingletonException())->setRunningInstanceProcessId($runningProcessId);
                 }
 
+                $fd = fopen($this->processIdFile, 'r+');
                 Process::kill($runningProcessId);
-                sleep(3);
+
+                // 阻塞，直至进程终止解锁
+                flock($fd, LOCK_EX);
+                flock($fd, LOCK_UN);
+                fclose($fd);
 
                 $this->singleGuarantee();
             }

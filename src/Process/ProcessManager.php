@@ -102,6 +102,10 @@ abstract class ProcessManager extends Process
             $this->pushTerminatingCallback(function () {
                 $this->processController->terminate();
             });
+
+            $this->processController->terminated(function () {
+                $this->clearProcessIdFile();
+            });
         }
 
         $this->processController->registerProcess($process);
@@ -148,7 +152,10 @@ abstract class ProcessManager extends Process
                     $callback();
                 }
 
-                $this->clearProcessIdFile();
+                if (!$this->processController) {
+                    $this->clearProcessIdFile();
+                }
+
                 $this->running = false;
             }
         };

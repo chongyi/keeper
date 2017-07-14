@@ -41,6 +41,11 @@ class ProcessController
     protected $processes;
 
     /**
+     * @var \Closure[]
+     */
+    protected $terminated = [];
+
+    /**
      * ProcessController constructor.
      *
      * @param Process $masterProcess
@@ -151,6 +156,10 @@ class ProcessController
             }
 
             if (!count($this->processes)) {
+                foreach ($this->terminated as $terminated) {
+                    $terminated();
+                }
+
                 exit(0);
             }
         };
@@ -190,5 +199,19 @@ class ProcessController
         foreach ($this->processes as $processId => $process) {
             $process->reopen();
         }
+    }
+
+    /**
+     * 注册终止回调
+     *
+     * @param \Closure $callback
+     *
+     * @return $this
+     */
+    public function terminated(\Closure $callback)
+    {
+        $this->terminated[] = $callback;
+
+        return $this;
     }
 }
