@@ -14,7 +14,7 @@
         "symfony/console": "^3.1",
         "symfony/http-foundation": "^3.3",
         "illuminate/container": "^5.3",
-        "phpunit/phpunit": "^6.2"
+        "phpunit/phpunit": "^5.7"
     },
     "autoload": {
         "psr-4": {
