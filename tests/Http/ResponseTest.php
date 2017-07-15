@@ -8,6 +8,7 @@
 
 namespace Http;
 
+use Dybasedev\Keeper\Http\Exceptions\InvalidSwooleResponseException;
 use Dybasedev\Keeper\Http\Response;
 use PHPUnit\Framework\TestCase;
 
@@ -41,6 +42,14 @@ class ResponseTest extends TestCase
                              );
 
         $response->setSwooleResponse($this->swooleResponse)->sendHeaders();
+    }
+
+    public function testSwooleResponseGetter()
+    {
+        $this->expectException(InvalidSwooleResponseException::class);
+
+        $response = new Response();
+        $response->getSwooleResponse();
     }
 
     /**

@@ -8,6 +8,7 @@
 
 namespace Dybasedev\Keeper\Http;
 
+use Dybasedev\Keeper\Http\Exceptions\InvalidSwooleResponseException;
 use Swoole\Http\Response as SwooleResponse;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -32,6 +33,20 @@ class Response extends SymfonyResponse
     }
 
     /**
+     * @return SwooleResponse
+     */
+    public function getSwooleResponse()
+    {
+        if (!$this->swooleResponse instanceof \Swoole\Http\Response) {
+            throw new InvalidSwooleResponseException();
+        }
+
+        return $this->swooleResponse;
+    }
+
+
+
+    /**
      * @inheritDoc
      */
     public function sendHeaders()
@@ -44,12 +59,12 @@ class Response extends SymfonyResponse
         // headers
         foreach ($this->headers->allPreserveCaseWithoutCookies() as $name => $values) {
             foreach ($values as $value) {
-                $this->swooleResponse->header($name, $value);
+                $this->getSwooleResponse()->header($name, $value);
             }
         }
 
         // status
-        $this->swooleResponse->status($this->statusCode);
+        $this->getSwooleResponse()->status($this->statusCode);
 
         // cookies
         /** @var Cookie $cookie */
@@ -66,7 +81,7 @@ class Response extends SymfonyResponse
      */
     public function sendContent()
     {
-        $this->swooleResponse->end($this->content);
+        $this->getSwooleResponse()->end($this->content);
 
         return $this;
     }
