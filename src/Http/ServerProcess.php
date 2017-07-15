@@ -10,6 +10,8 @@ namespace Dybasedev\Keeper\Http;
 
 use Dybasedev\Keeper\Process\Process;
 use Swoole\Http\Server;
+use Swoole\Http\Request;
+use Swoole\Http\Response;
 
 /**
  * Class ServerProcess
@@ -49,10 +51,10 @@ abstract class ServerProcess extends Process
     {
         $this->server = $this->createSwServer();
 
-        $this->server->on('start', $this->onStart());
-        $this->server->on('managerStart', $this->onManagerStart());
-        $this->server->on('workerStart', $this->onWorkerStart());
-        $this->server->on('request', $this->onRequest());
+        $this->server->on('start', $this->serverStartCallback());
+        $this->server->on('managerStart', $this->serverManagerStartCallback());
+        $this->server->on('workerStart', $this->workerStartCallback());
+        $this->server->on('request', $this->httpRequestCallback());
 
         $this->server->start();
     }
@@ -60,7 +62,7 @@ abstract class ServerProcess extends Process
     /**
      * @return \Closure
      */
-    protected function onStart()
+    protected function serverStartCallback()
     {
         return function () {
             $this->setProcessNameSuffix('', false);
@@ -70,20 +72,22 @@ abstract class ServerProcess extends Process
     /**
      * @return \Closure
      */
-    protected function onWorkerStart()
+    protected function workerStartCallback()
     {
         return function (Server $server, $workerId) {
             $this->actualServer = $server;
             $this->worker       = true;
             $this->workerId     = $workerId;
             $this->setProcessNameSuffix('worker#' . $workerId);
+
+            $this->onWorkerStart();
         };
     }
 
     /**
      * @return \Closure
      */
-    protected function onManagerStart()
+    protected function serverManagerStartCallback()
     {
         return function () {
             $this->setProcessNameSuffix('manager');
@@ -93,7 +97,55 @@ abstract class ServerProcess extends Process
     /**
      * @return \Closure
      */
-    abstract function onRequest();
+    protected function httpRequestCallback()
+    {
+        return function (Request $request, Response $response) {
+            $this->onRequest($request, $response);
+        };
+    }
+
+    /**
+     * HTTP 请求事件
+     *
+     * @param Request $request
+     * @param Response $response
+     */
+    abstract function onRequest(Request $request, Response $response);
+
+    /**
+     * Worker 启动事件
+     */
+    abstract function onWorkerStart();
+
+    /**
+     * 获取 Worker 启动后的 Server 实例
+     *
+     * @return Server
+     */
+    public function getActualServer()
+    {
+        return $this->actualServer;
+    }
+
+    /**
+     * 判断是否是运行于 Worker 中
+     *
+     * @return bool
+     */
+    public function isWorker()
+    {
+        return $this->worker;
+    }
+
+    /**
+     * 获取 Worker ID
+     *
+     * @return int
+     */
+    public function getWorkerId()
+    {
+        return $this->workerId;
+    }
 
     /**
      * 创建 Swoole Server 实例
