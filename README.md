@@ -11,9 +11,11 @@
 * PHP >= 5.6
 * Swoole >= 1.8.2
 
-## 使用例子
+## 使用方法
 
-先定义一个子进程
+### 一个简单的 HTTP 服务
+
+1. 先定义一个用作实现 HTTP 服务子进程
 
 ```php
 <?php
@@ -34,7 +36,7 @@ class Http extends Process
     public function onRequest()
     {
         return function (Request $request, Response $response) {
-            if ($request->server['request_uri'] === 'favicon.ico') {
+            if ($request->server['request_uri'] === '/favicon.ico') {
                 $response->status(404);
                 $response->end('Not found.');
                 return;
@@ -46,7 +48,7 @@ class Http extends Process
 }
 ```
 
-创建主进程
+2. 创建主进程
 
 ```php
 <?php
@@ -56,26 +58,32 @@ class Master extends ProcessManager
 {
     protected function onPreparing() 
     {
+        // 注册子进程
         $this->registerChildProcess(new Http(['auto_reload' => false]));
     }
     
 }
 ```
 
-启动/重启
+3. 启动/重启/停止
 
 ```php
 <?php
 // 确保引入了 autoload.php
 // require 'vendor/autoload.php'
 
+$master = (new Master())->setProcessIdFile('./pid')->setDaemon(true);
+
 // 启动
-(new Master())->setProcessIdFile('./pid')->setDaemon(true)->run();
+$master->run();
 
 // 重启
-(new Master())->setProcessIdFile('./pid')->setDaemon(true)->restart();
+$master->restart();
+
+// 停止
+$master->stop();
 ```
 
 ## License
 
-MIT
+MIT License
