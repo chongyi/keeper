@@ -44,8 +44,6 @@ class Response extends SymfonyResponse
         return $this->swooleResponse;
     }
 
-
-
     /**
      * @inheritDoc
      */
