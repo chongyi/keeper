@@ -26,7 +26,7 @@ class ProcessController
     protected $masterProcess;
 
     /**
-     * @var array
+     * @var array|Process
      */
     protected $registeredProcesses;
 
@@ -70,7 +70,7 @@ class ProcessController
         if ($process instanceof Process) {
             $this->registeredProcesses[] = $process;
         } else {
-            $this->registeredProcesses[] = [$process, $options];
+            $this->registerProcess($this->makeProcess($process, $options));
         }
 
         return $this;
@@ -98,11 +98,6 @@ class ProcessController
     public function bootstrap()
     {
         foreach ($this->registeredProcesses as $process) {
-            if (!$process instanceof Process) {
-                list($process, $options) = $process;
-                $process = $this->makeProcess($process, $options);
-            }
-
             $this->buildProcess($process);
         }
     }
@@ -133,7 +128,13 @@ class ProcessController
      */
     private function makeProcess($processName, array $options)
     {
-        return new $processName($options);
+        $process = new $processName($options);
+
+        if (!$process instanceof Process) {
+            throw new \InvalidArgumentException();
+        }
+
+        return $process;
     }
 
     /**

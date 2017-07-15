@@ -105,34 +105,19 @@ abstract class Process implements StandardProcess
      */
     public function run($masterId = null)
     {
+        $this->masterId = $masterId;
+
         if ($this->isTemporaryAutoReload()) {
             $this->clearTemporaryAutoLoadStatus();
         }
 
-        $process = function (SwProcess $process) use ($masterId) {
-            $this->swooleProcess = $process;
-            $this->processId     = $process->pid;
-            $this->masterId      = $masterId;
+        $swooleProcessInstance = $this->buildSwooleProcessInstance(
+            $this->generateSwooleProcessCallback()
+        );
 
-            // 对于超级管理员用户而言，该操作才会生效。
-            // 该操作调用了 setuid 和 setgid 作改变当前进程的实际用户 ID。
-            $this->changeCurrentOwner();
-
-            // 调用实际进程处理逻辑
-            $this->process();
-        };
-
-        if ($this instanceof StandardProcess) {
-            $this->swooleProcess = new SwProcess($process);
-        } elseif ($this instanceof PipeProcess) {
-            $this->swooleProcess = new SwProcess($process, $this->isRedirectStdIO(), $this->getPipeType());
-        } else {
-            throw new OperationRejectedException();
-        }
-
-        $this->processId = $this->swooleProcess->start();
-        $this->masterId  = $masterId;
-        $this->pipe      = $this->swooleProcess->pipe;
+        $this->processId     = $swooleProcessInstance->start();
+        $this->pipe          = $swooleProcessInstance->pipe;
+        $this->swooleProcess = $swooleProcessInstance;
 
         return $this;
     }
@@ -304,5 +289,45 @@ abstract class Process implements StandardProcess
         $this->swooleProcess         = null;
         $this->processId             = null;
         $this->withProcessController = false;
+    }
+
+    /**
+     * 生成 Swoole 进程回调
+     *
+     * @return \Closure
+     */
+    protected function generateSwooleProcessCallback()
+    {
+        return function (SwProcess $process) {
+            $this->swooleProcess = $process;
+            $this->processId     = $process->pid;
+
+            // 对于超级管理员用户而言，该操作才会生效。
+            // 该操作调用了 setuid 和 setgid 作改变当前进程的实际用户 ID。
+            $this->changeCurrentOwner();
+
+            // 调用实际进程处理逻辑
+            $this->process();
+        };
+    }
+
+    /**
+     * 构造 Swoole Process 实例
+     *
+     * @param $processCallback
+     *
+     * @return SwProcess
+     */
+    protected function buildSwooleProcessInstance($processCallback)
+    {
+        if ($this instanceof StandardProcess) {
+            $process = new SwProcess($processCallback);
+        } elseif ($this instanceof PipeProcess) {
+            $process = new SwProcess($processCallback, $this->isRedirectStdIO(), $this->getPipeType());
+        } else {
+            throw new OperationRejectedException();
+        }
+
+        return $process;
     }
 }

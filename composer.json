@@ -19,6 +19,9 @@
     "autoload": {
         "psr-4": {
             "Dybasedev\\Keeper\\": "src/"
-        }
+        },
+        "classmap": [
+            "tests/"
+        ]
     }
 }
