@@ -8,7 +8,7 @@
 
 namespace Dybasedev\Keeper\Http;
 
-use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+use Illuminate\Http\Request as IlluminateRequest;
 use Swoole\Http\Request as SwooleRequest;
 
 /**
@@ -18,7 +18,7 @@ use Swoole\Http\Request as SwooleRequest;
  *
  * @package Dybasedev\Keeper\Http
  */
-class Request extends SymfonyRequest
+class Request extends IlluminateRequest
 {
     /**
      * 从 Swoole Request 实例创建请求实体

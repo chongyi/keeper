@@ -39,6 +39,11 @@ class Kernel
         $this->container->instance(static::class, $this);
     }
 
+    /**
+     * @param $response
+     *
+     * @return Response
+     */
     public function prepareResponse($response)
     {
         if (!$response instanceof Response) {
