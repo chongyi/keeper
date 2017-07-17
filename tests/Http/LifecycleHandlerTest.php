@@ -10,9 +10,12 @@ namespace Http;
 
 use Dybasedev\Keeper\Http\Lifecycle\Handler;
 use Dybasedev\Keeper\Http\Response;
+use Exception;
 use Illuminate\Contracts\Container\Container;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class LifecycleHandlerTest extends TestCase
 {
@@ -26,7 +29,7 @@ class LifecycleHandlerTest extends TestCase
         $response = new Response();
         $this->assertEquals($response, $kernel->prepareResponse($response));
 
-        $response = new \Symfony\Component\HttpFoundation\Response('foo', 403);
+        $response = new SymfonyResponse('foo', 403);
         $response->setCharset('gbk');
         $this->assertInstanceOf(Response::class, $kernel->prepareResponse($response));
         $this->assertEquals('foo', $kernel->prepareResponse($response)->getContent());
@@ -42,5 +45,20 @@ class LifecycleHandlerTest extends TestCase
         $this->assertInstanceOf(Response::class, $kernel->prepareResponse($response));
         $this->assertEquals('foo', $kernel->prepareResponse($response)->getContent());
         $this->assertEquals(200, $kernel->prepareResponse($response)->getStatusCode());
+    }
+
+    public function testExceptionHandler()
+    {
+        /** @var Container $container */
+        $container = $this->createMock(Container::class);
+
+        $kernel = (new Handler($container))->setExceptionHandler(function (Exception $exception) {
+            $this->assertInstanceOf(HttpException::class, $exception);
+
+            return new Response($exception->getMessage(), $exception->getStatusCode(), $exception->getHeaders());
+        });
+        $this->assertInstanceOf(SymfonyResponse::class, $kernel->handleException(new Exception()));
+        $this->assertEquals(500, $kernel->handleException(new Exception())->getStatusCode());
+        $this->assertEquals(403, $kernel->handleException(new HttpException(403))->getStatusCode());
     }
 }

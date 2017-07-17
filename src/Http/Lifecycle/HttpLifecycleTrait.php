@@ -9,6 +9,7 @@
 namespace Dybasedev\Keeper\Http\Lifecycle;
 
 use Dybasedev\Keeper\Http\Request;
+use Dybasedev\Keeper\Http\ServerProcess;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
 use Illuminate\Container\Container;
@@ -20,7 +21,7 @@ use Illuminate\Container\Container;
  *
  * @package Dybasedev\Keeper\Http\Lifecycle
  */
-trait HttpServiceLifecycleTrait
+trait HttpLifecycleTrait
 {
     /**
      * @var Handler
@@ -37,9 +38,14 @@ trait HttpServiceLifecycleTrait
      */
     public function onWorkerStart()
     {
-        $this->lifecycleHandler = new Handler($this->container = new Container());
-        $this->lifecycleHandler->init($this->getRouteDispatcher($this->lifecycleHandler)
-                                           ->routesRegistrar($this->getRoutesRegistrar()));
+        $this->container = new Container();
+        $this->container->instance(ServerProcess::class, $this);
+
+        $this->lifecycleHandler = new Handler($this->container);
+
+        $this->lifecycleHandler->setExceptionHandler($this->getExceptionHandler())
+                               ->setRouteDispatcher($this->getRouteDispatcher($this->lifecycleHandler)
+                                                         ->routesRegistrar($this->getRoutesRegistrar()));
     }
 
     /**
@@ -56,6 +62,15 @@ trait HttpServiceLifecycleTrait
     }
 
     /**
+     * @return Container
+     */
+    public function getContainer()
+    {
+        return $this->container;
+    }
+
+
+    /**
      * 获取路由调度器
      *
      * @param Handler $handler
@@ -70,4 +85,11 @@ trait HttpServiceLifecycleTrait
      * @return \Closure
      */
     abstract protected function getRoutesRegistrar();
+
+    /**
+     * 异常处理器
+     *
+     * @return \Closure
+     */
+    abstract protected function getExceptionHandler();
 }

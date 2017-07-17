@@ -6,17 +6,19 @@
  * @link      https://insp.top
  */
 
-namespace Dybasedev\Keeper\Http\Lifecycle;
+namespace Dybasedev\Keeper\Http\Lifecycle\Illuminate;
 
 
 use Closure;
+use Dybasedev\Keeper\Http\Lifecycle\Handler;
 use Dybasedev\Keeper\Http\Request;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherInterface;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Routing\Router;
+use Dybasedev\Keeper\Http\Lifecycle\RouteDispatcher as RouteDispatcherInterface;
 
-class IlluminateRouteDispatch implements RouteDispatcher
+class RouteDispatch implements RouteDispatcherInterface
 {
     /**
      * @var Handler
@@ -71,6 +73,4 @@ class IlluminateRouteDispatch implements RouteDispatcher
 
         return $this;
     }
-
-
 }

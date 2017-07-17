@@ -24,17 +24,19 @@
 <?php
 use Dybasedev\Keeper\Http\ServerProcess;
 use Dybasedev\Keeper\Http\Lifecycle\Handler;
-use Dybasedev\Keeper\Http\Lifecycle\IlluminateRouteDispatch;
-use Dybasedev\Keeper\Http\Lifecycle\HttpServiceLifecycleTrait;
+use Dybasedev\Keeper\Http\Lifecycle\Illuminate\RouteDispatch;
+use Dybasedev\Keeper\Http\Lifecycle\HttpLifecycleTrait;
+use Dybasedev\Keeper\Http\Lifecycle\HttpExceptionHandlerTrait;
+
 use Illuminate\Routing\Router;
 
 class Http extends ServerProcess
 {
-    use HttpServiceLifecycleTrait;
+    use HttpLifecycleTrait, HttpExceptionHandlerTrait;
     
     protected function getRouteDispatcher(Handler $handler)
     {
-        return new IlluminateRouteDispatch($handler);
+        return new RouteDispatch($handler);
     }
 
     protected function getRoutesRegistrar()

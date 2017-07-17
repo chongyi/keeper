@@ -8,12 +8,15 @@
 
 namespace Dybasedev\Keeper\Http\Lifecycle;
 
-
+use Closure;
 use Dybasedev\Keeper\Http\Request;
 use Dybasedev\Keeper\Http\Response;
+use Dybasedev\Keeper\Process\Exceptions\RuntimeException;
+use Exception;
 use Illuminate\Contracts\Container\Container;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Class Kernel
@@ -35,6 +38,11 @@ class Handler
     protected $routeDispatcher;
 
     /**
+     * @var Closure
+     */
+    protected $exceptionHandler;
+
+    /**
      * Kernel constructor.
      *
      * @param Container $container
@@ -46,15 +54,21 @@ class Handler
     }
 
     /**
-     * 初始化
-     *
-     * 一般的，初始化的过程是在 Worker 进程中进行，主要进行一系列需要常驻内存的数据、模块注册
+     * 设置 Route Dispatcher
      *
      * @param RouteDispatcher $dispatcher
      */
-    public function init(RouteDispatcher $dispatcher)
+    public function setRouteDispatcher(RouteDispatcher $dispatcher)
     {
         $this->routeDispatcher = $dispatcher;
+    }
+
+    /**
+     * @return RouteDispatcher
+     */
+    public function getRouteDispatcher()
+    {
+        return $this->routeDispatcher;
     }
 
     /**
@@ -66,7 +80,11 @@ class Handler
      */
     public function dispatch(Request $request)
     {
-        return $this->prepareResponse($this->routeDispatcher->dispatch($request));
+        try {
+            return $this->prepareResponse($this->getRouteDispatcher()->dispatch($request));
+        } catch (Exception $exception) {
+            return $this->prepareResponse($this->handleException($exception));
+        }
     }
 
     /**
@@ -101,4 +119,43 @@ class Handler
     {
         return $this->container;
     }
+
+    /**
+     * 设置异常处理器
+     *
+     * @param Closure $callback
+     *
+     * @return $this
+     */
+    public function setExceptionHandler(Closure $callback)
+    {
+        $this->exceptionHandler = $callback;
+
+        return $this;
+    }
+
+    /**
+     * @param Exception $exception
+     *
+     * @return SymfonyResponse
+     *
+     * @throws RuntimeException
+     */
+    public function handleException(Exception $exception)
+    {
+        // 所有异常统一转换为 Http 异常，
+        // 异常处理器有必要根据其返回一个合理的 Http 响应
+        if (!$exception instanceof HttpException) {
+            $exception = new HttpException(500, $exception->getMessage(), $exception);
+        }
+
+        $response = call_user_func($this->exceptionHandler, $exception);
+
+        if ($response instanceof SymfonyResponse) {
+            return $response;
+        }
+
+        throw new RuntimeException();
+    }
+
 }
