@@ -149,6 +149,10 @@ class Handler
             $exception = new HttpException(500, $exception->getMessage(), $exception);
         }
 
+        if (is_null($this->exceptionHandler)) {
+            return new Response($exception->getMessage(), $exception->getStatusCode(), $exception->getHeaders());
+        }
+
         $response = call_user_func($this->exceptionHandler, $exception);
 
         if ($response instanceof SymfonyResponse) {

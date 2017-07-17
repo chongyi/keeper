@@ -9,6 +9,8 @@
 namespace Http;
 
 use Dybasedev\Keeper\Http\Lifecycle\Handler;
+use Dybasedev\Keeper\Http\Lifecycle\RouteDispatcher;
+use Dybasedev\Keeper\Http\Request;
 use Dybasedev\Keeper\Http\Response;
 use Exception;
 use Illuminate\Contracts\Container\Container;
@@ -19,46 +21,76 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class LifecycleHandlerTest extends TestCase
 {
+    /**
+     * @var Handler
+     */
+    protected $handler;
+
     public function testPrepareResponse()
     {
-        /** @var Container $container */
-        $container = $this->createMock(Container::class);
-
-        $kernel = new Handler($container);
-
         $response = new Response();
-        $this->assertEquals($response, $kernel->prepareResponse($response));
+        $this->assertEquals($response, $this->handler->prepareResponse($response));
 
         $response = new SymfonyResponse('foo', 403);
         $response->setCharset('gbk');
-        $this->assertInstanceOf(Response::class, $kernel->prepareResponse($response));
-        $this->assertEquals('foo', $kernel->prepareResponse($response)->getContent());
-        $this->assertEquals(403, $kernel->prepareResponse($response)->getStatusCode());
-        $this->assertEquals($response->headers->all(), $kernel->prepareResponse($response)->headers->all());
+        $this->assertInstanceOf(Response::class, $this->handler->prepareResponse($response));
+        $this->assertEquals('foo', $this->handler->prepareResponse($response)->getContent());
+        $this->assertEquals(403, $this->handler->prepareResponse($response)->getStatusCode());
+        $this->assertEquals($response->headers->all(), $this->handler->prepareResponse($response)->headers->all());
 
         $response = new JsonResponse(['foo' => 'bar']);
-        $this->assertInstanceOf(Response::class, $kernel->prepareResponse($response));
-        $this->assertEquals('{"foo":"bar"}', $kernel->prepareResponse($response)->getContent());
-        $this->assertEquals('application/json', $kernel->prepareResponse($response)->headers->get('Content-Type'));
+        $this->assertInstanceOf(Response::class, $this->handler->prepareResponse($response));
+        $this->assertEquals('{"foo":"bar"}', $this->handler->prepareResponse($response)->getContent());
+        $this->assertEquals('application/json',
+            $this->handler->prepareResponse($response)->headers->get('Content-Type'));
 
         $response = 'foo';
-        $this->assertInstanceOf(Response::class, $kernel->prepareResponse($response));
-        $this->assertEquals('foo', $kernel->prepareResponse($response)->getContent());
-        $this->assertEquals(200, $kernel->prepareResponse($response)->getStatusCode());
+        $this->assertInstanceOf(Response::class, $this->handler->prepareResponse($response));
+        $this->assertEquals('foo', $this->handler->prepareResponse($response)->getContent());
+        $this->assertEquals(200, $this->handler->prepareResponse($response)->getStatusCode());
     }
 
     public function testExceptionHandler()
     {
-        /** @var Container $container */
-        $container = $this->createMock(Container::class);
+        $this->assertInstanceOf(Response::class, $this->handler->handleException(new Exception()));
+        $this->assertEquals('foo', $this->handler->handleException(new Exception('foo'))->getContent());
+        $this->assertEquals(500, $this->handler->handleException(new Exception())->getStatusCode());
+        $this->assertEquals(403, $this->handler->handleException(new HttpException(403))->getStatusCode());
 
-        $kernel = (new Handler($container))->setExceptionHandler(function (Exception $exception) {
+        $this->handler->setExceptionHandler(function (Exception $exception) {
             $this->assertInstanceOf(HttpException::class, $exception);
 
             return new Response($exception->getMessage(), $exception->getStatusCode(), $exception->getHeaders());
         });
-        $this->assertInstanceOf(SymfonyResponse::class, $kernel->handleException(new Exception()));
-        $this->assertEquals(500, $kernel->handleException(new Exception())->getStatusCode());
-        $this->assertEquals(403, $kernel->handleException(new HttpException(403))->getStatusCode());
+        $this->assertInstanceOf(SymfonyResponse::class, $this->handler->handleException(new Exception()));
+        $this->assertEquals(500, $this->handler->handleException(new Exception())->getStatusCode());
+        $this->assertEquals(403, $this->handler->handleException(new HttpException(403))->getStatusCode());
     }
+
+    public function testDispatch()
+    {
+        $routeDispacther = $this->createMock(RouteDispatcher::class);
+        $routeDispacther->expects($this->once())->method('dispatch')->willReturn($stub = new Response('foo'));
+        $this->handler->setRouteDispatcher($routeDispacther);
+        $this->assertEquals($stub, $this->handler->dispatch(new Request()));
+
+        $routeDispacther = $this->createMock(RouteDispatcher::class);
+        $routeDispacther->expects($this->once())->method('dispatch')->willThrowException(new Exception());
+        $this->handler->setRouteDispatcher($routeDispacther);
+        $this->assertEquals(500, $this->handler->dispatch(new Request())->getStatusCode());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function setUp()
+    {
+        parent::setUp();
+
+        /** @var Container $container */
+        $container = $this->createMock(Container::class);;
+        $this->handler = new Handler($container);
+    }
+
+
 }

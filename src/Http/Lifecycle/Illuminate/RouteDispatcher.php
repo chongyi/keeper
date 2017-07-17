@@ -1,6 +1,6 @@
 <?php
 /**
- * IlluminateRouteDispatch.php
+ * RouteDispatcher.php
  *
  * @copyright Chongyi <xpz3847878@163.com>
  * @link      https://insp.top
@@ -18,7 +18,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Routing\Router;
 use Dybasedev\Keeper\Http\Lifecycle\RouteDispatcher as RouteDispatcherInterface;
 
-class RouteDispatch implements RouteDispatcherInterface
+class RouteDispatcher implements RouteDispatcherInterface
 {
     /**
      * @var Handler
