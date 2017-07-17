@@ -1,6 +1,6 @@
 <?php
 /**
- * LifecycleKernelTest.php
+ * LifecycleHandlerTest.php
  *
  * @copyright Chongyi <xpz3847878@163.com>
  * @link      https://insp.top
@@ -8,20 +8,20 @@
 
 namespace Http;
 
-use Dybasedev\Keeper\Http\Lifecycle\Kernel;
+use Dybasedev\Keeper\Http\Lifecycle\Handler;
 use Dybasedev\Keeper\Http\Response;
 use Illuminate\Contracts\Container\Container;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class LifecycleKernelTest extends TestCase
+class LifecycleHandlerTest extends TestCase
 {
     public function testPrepareResponse()
     {
         /** @var Container $container */
         $container = $this->createMock(Container::class);
 
-        $kernel = new Kernel($container);
+        $kernel = new Handler($container);
 
         $response = new Response();
         $this->assertEquals($response, $kernel->prepareResponse($response));
