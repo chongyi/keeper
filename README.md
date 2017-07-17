@@ -17,32 +17,32 @@
 
 1. 先定义一个用作实现 HTTP 服务子进程
 
+> 我们用到了脚手架自带的基于 Laravel Illuminate 路由组件实现的 HTTP 生命周期，
+> 这样可以以最少的代码快速实现一个优雅的 Web 程序。
+
 ```php
 <?php
-use Dybasedev\Keeper\Process\Process;
-use Swoole\Http\Server;
-use Swoole\Http\Request;
-use Swoole\Http\Response;
+use Dybasedev\Keeper\Http\ServerProcess;
+use Dybasedev\Keeper\Http\Lifecycle\Handler;
+use Dybasedev\Keeper\Http\Lifecycle\IlluminateRouteDispatch;
+use Dybasedev\Keeper\Http\Lifecycle\HttpServiceLifecycleTrait;
+use Illuminate\Routing\Router;
 
-class Http extends Process
+class Http extends ServerProcess
 {
-    public function process()
-    {
-        $server = new Server('0.0.0.0', 19730);
-        $server->on('request', $this->onRequest());
-        $server->start();
-    }
+    use HttpServiceLifecycleTrait;
     
-    public function onRequest()
+    protected function getRouteDispatcher(Handler $handler)
     {
-        return function (Request $request, Response $response) {
-            if ($request->server['request_uri'] === '/favicon.ico') {
-                $response->status(404);
-                $response->end('Not found.');
-                return;
-            }
-            
-            $response->end('<html><head><title>Demo</title></head><body><h1>Hello, world</h1></body></html>');
+        return new IlluminateRouteDispatch($handler);
+    }
+
+    protected function getRoutesRegistrar()
+    {
+        return function (Router $router) {
+            $router->get('/', function () {
+                return 'hello, world';
+            });
         };
     }
 }
@@ -58,8 +58,14 @@ class Master extends ProcessManager
 {
     protected function onPreparing() 
     {
+        $options = [
+            'host'        => '0.0.0.0',
+            'port'        => '19730',
+            'auto_reload' => false // 该子进程退出后是否自动重载
+        ];
+        
         // 注册子进程
-        $this->registerChildProcess(new Http(['auto_reload' => false]));
+        $this->registerChildProcess(new Http($options));
     }
     
 }
