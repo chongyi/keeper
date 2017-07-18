@@ -38,7 +38,7 @@ trait HttpLifecycleTrait
      */
     public function onWorkerStart()
     {
-        $this->container = new Container();
+        $this->container = Container::getInstance();
         $this->container->instance(ServerProcess::class, $this);
 
         $this->lifecycleHandler = new Handler($this->container);
