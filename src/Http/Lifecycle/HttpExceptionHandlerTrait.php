@@ -11,7 +11,6 @@ namespace Dybasedev\Keeper\Http\Lifecycle;
 use Dybasedev\Keeper\Http\Response;
 use Dybasedev\Keeper\Http\ServerProcess;
 use Illuminate\Contracts\Container\Container;
-use Symfony\Component\Debug\Exception\FlattenException;
 use Symfony\Component\Debug\ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 

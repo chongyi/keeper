@@ -51,10 +51,7 @@ abstract class ServerProcess extends Process
     {
         $this->server = $this->createSwServer();
 
-        $this->server->on('start', $this->serverStartCallback());
-        $this->server->on('managerStart', $this->serverManagerStartCallback());
-        $this->server->on('workerStart', $this->workerStartCallback());
-        $this->server->on('request', $this->httpRequestCallback());
+        $this->serverEventRegister();
 
         $this->server->start();
     }
@@ -191,5 +188,16 @@ abstract class ServerProcess extends Process
 
             cli_set_process_title($processName . $suffix);
         }
+    }
+
+    /**
+     * 服务器事件注册
+     */
+    protected function serverEventRegister()
+    {
+        $this->server->on('start', $this->serverStartCallback());
+        $this->server->on('managerStart', $this->serverManagerStartCallback());
+        $this->server->on('workerStart', $this->workerStartCallback());
+        $this->server->on('request', $this->httpRequestCallback());
     }
 }

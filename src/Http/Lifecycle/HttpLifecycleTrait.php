@@ -13,6 +13,7 @@ use Dybasedev\Keeper\Http\ServerProcess;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Container\Container as ContainerInterface;
 
 /**
  * Trait HttpServiceLifecycleTrait
@@ -41,12 +42,20 @@ trait HttpLifecycleTrait
         $this->container = Container::getInstance();
         $this->container->instance(ServerProcess::class, $this);
 
-        $this->lifecycleHandler = new Handler($this->container);
-
+        $this->lifecycleHandler = $this->createLifecycleHandler($this->container);
         $this->lifecycleHandler->setExceptionHandler($this->getExceptionHandler())
                                ->setRouteDispatcher($this->getRouteDispatcher($this->lifecycleHandler)
                                                          ->routesRegistrar($this->getRoutesRegistrar()));
     }
+
+    /**
+     * 创建生命周期管理器
+     *
+     * @param ContainerInterface|null $container
+     *
+     * @return Handler
+     */
+    abstract protected function createLifecycleHandler(ContainerInterface $container = null);
 
     /**
      * 当请求进入时触发
