@@ -9,9 +9,12 @@
 namespace Dybasedev\Keeper\Http;
 
 use Dybasedev\Keeper\Process\Process;
+use Illuminate\Container\Container;
+use Illuminate\Contracts\Container\Container as ContainerInterface;
 use Swoole\Http\Server;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use Swoole\Process as SwooleProcess;
 
 /**
  * Class ServerProcess
@@ -43,6 +46,11 @@ abstract class ServerProcess extends Process
      * @var int
      */
     protected $workerId;
+
+    /**
+     * @var Container
+     */
+    protected $container;
 
     /**
      * @inheritDoc
@@ -77,8 +85,30 @@ abstract class ServerProcess extends Process
             $this->workerId     = $workerId;
             $this->setProcessNameSuffix('worker#' . $workerId);
 
+            $container = $this->getContainer();
+            $container->instance(SwooleProcess::class, $this->swooleProcess);
+            $container->instance(Server::class, $this->actualServer);
+            $container->instance('workerId', $workerId);
+
             $this->onWorkerStart();
         };
+    }
+
+    /**
+     * 获取容器
+     *
+     * @return Container
+     */
+    public function getContainer()
+    {
+        if ($this->container) {
+            return $this->container;
+        }
+
+        $this->container = Container::getInstance();
+        $this->container->instance(ContainerInterface::class, $this->container);
+
+        return $this->container;
     }
 
     /**
@@ -149,7 +179,7 @@ abstract class ServerProcess extends Process
      *
      * @return Server
      */
-    protected function createSwServer()
+    public function createSwServer()
     {
         $server = new Server($this->options['host'], $this->options['port']);
         $server->set([

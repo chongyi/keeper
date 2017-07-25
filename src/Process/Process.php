@@ -318,7 +318,7 @@ abstract class Process implements StandardProcess
      *
      * @return SwProcess
      */
-    protected function buildSwooleProcessInstance($processCallback)
+    public function buildSwooleProcessInstance($processCallback)
     {
         if ($this instanceof StandardProcess) {
             $process = new SwProcess($processCallback);

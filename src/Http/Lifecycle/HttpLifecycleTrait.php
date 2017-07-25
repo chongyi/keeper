@@ -30,19 +30,15 @@ trait HttpLifecycleTrait
     protected $lifecycleHandler;
 
     /**
-     * @var Container
-     */
-    protected $container;
-
-    /**
      * 当 Worker 启动时触发
      */
     public function onWorkerStart()
     {
-        $this->container = Container::getInstance();
-        $this->container->instance(ServerProcess::class, $this);
+        // 注册 ServerProcess
+        $this->getContainer()->instance(ServerProcess::class, $this);
+        $this->getContainer()->instance('workerId', $this->getWorkerId());
 
-        $this->lifecycleHandler = $this->createLifecycleHandler($this->container);
+        $this->lifecycleHandler = $this->createLifecycleHandler($this->getContainer());
         $this->lifecycleHandler->setExceptionHandler($this->getExceptionHandler())
                                ->setRouteDispatcher($this->getRouteDispatcher($this->lifecycleHandler)
                                                          ->routesRegistrar($this->getRoutesRegistrar()));
@@ -51,11 +47,14 @@ trait HttpLifecycleTrait
     /**
      * 创建生命周期管理器
      *
-     * @param ContainerInterface|null $container
+     * @param ContainerInterface $container
      *
      * @return Handler
      */
-    abstract protected function createLifecycleHandler(ContainerInterface $container = null);
+    public function createLifecycleHandler(ContainerInterface $container)
+    {
+        return new Handler($container);
+    }
 
     /**
      * 当请求进入时触发
@@ -73,11 +72,14 @@ trait HttpLifecycleTrait
     /**
      * @return Container
      */
-    public function getContainer()
-    {
-        return $this->container;
-    }
+    abstract public function getContainer();
 
+    /**
+     * 获取 Worker ID
+     *
+     * @return int
+     */
+    abstract public function getWorkerId();
 
     /**
      * 获取路由调度器

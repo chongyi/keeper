@@ -16,7 +16,8 @@
         "illuminate/container": "^5.3",
         "illuminate/routing": "^5.3",
         "illuminate/events": "^5.3",
-        "phpunit/phpunit": "^5.7"
+        "phpunit/phpunit": "^5.7",
+        "josegonzalez/dotenv": "^3.1"
     },
     "autoload": {
         "psr-4": {
