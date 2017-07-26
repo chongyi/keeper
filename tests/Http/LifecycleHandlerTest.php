@@ -9,6 +9,7 @@
 namespace Http;
 
 use Dybasedev\Keeper\Http\Lifecycle\Handler;
+use Dybasedev\Keeper\Http\Lifecycle\Interfaces\ExceptionHandler;
 use Dybasedev\Keeper\Http\Lifecycle\Interfaces\RouteDispatcher;
 use Dybasedev\Keeper\Http\Request;
 use Dybasedev\Keeper\Http\Response;
@@ -57,11 +58,12 @@ class LifecycleHandlerTest extends TestCase
         $this->assertEquals(500, $this->handler->handleException(new Exception())->getStatusCode());
         $this->assertEquals(403, $this->handler->handleException(new HttpException(403))->getStatusCode());
 
-        $this->handler->setExceptionHandler(function (Exception $exception) {
-            $this->assertInstanceOf(HttpException::class, $exception);
-
+        $handler = $this->createMock(ExceptionHandler::class);
+        $handler->expects($this->any())->method('handle')->with($this->isInstanceOf(HttpException::class))->will($this->returnCallback(function ($exception) {
             return new Response($exception->getMessage(), $exception->getStatusCode(), $exception->getHeaders());
-        });
+        }));
+
+        $this->handler->setExceptionHandler($handler);
         $this->assertInstanceOf(SymfonyResponse::class, $this->handler->handleException(new Exception()));
         $this->assertEquals(500, $this->handler->handleException(new Exception())->getStatusCode());
         $this->assertEquals(403, $this->handler->handleException(new HttpException(403))->getStatusCode());

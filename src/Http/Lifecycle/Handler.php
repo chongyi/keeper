@@ -8,7 +8,7 @@
 
 namespace Dybasedev\Keeper\Http\Lifecycle;
 
-use Closure;
+use Dybasedev\Keeper\Http\Lifecycle\Interfaces\ExceptionHandler;
 use Dybasedev\Keeper\Http\Lifecycle\Interfaces\RouteDispatcher;
 use Dybasedev\Keeper\Http\Request;
 use Dybasedev\Keeper\Http\Response;
@@ -39,7 +39,7 @@ class Handler
     protected $routeDispatcher;
 
     /**
-     * @var Closure
+     * @var ExceptionHandler
      */
     protected $exceptionHandler;
 
@@ -124,13 +124,13 @@ class Handler
     /**
      * 设置异常处理器
      *
-     * @param Closure $callback
+     * @param ExceptionHandler $handler
      *
      * @return $this
      */
-    public function setExceptionHandler(Closure $callback)
+    public function setExceptionHandler(ExceptionHandler $handler)
     {
-        $this->exceptionHandler = $callback;
+        $this->exceptionHandler = $handler;
 
         return $this;
     }
@@ -154,7 +154,7 @@ class Handler
             return new Response($exception->getMessage(), $exception->getStatusCode(), $exception->getHeaders());
         }
 
-        $response = call_user_func($this->exceptionHandler, $exception);
+        $response = $this->exceptionHandler->handle($exception);
 
         if ($response instanceof SymfonyResponse) {
             return $response;

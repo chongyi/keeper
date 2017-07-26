@@ -86,8 +86,8 @@ abstract class ServerProcess extends Process
             $this->setProcessNameSuffix('worker#' . $workerId);
 
             $container = $this->getContainer();
-            $container->instance(SwooleProcess::class, $this->swooleProcess);
-            $container->instance(Server::class, $this->actualServer);
+            $container->instance(SwooleProcess::class, $this->getSwooleProcess());
+            $container->instance(Server::class, $this->getActualServer());
             $container->instance('workerId', $workerId);
 
             $this->onWorkerStart();
@@ -134,7 +134,7 @@ abstract class ServerProcess extends Process
     /**
      * HTTP 请求事件
      *
-     * @param Request $request
+     * @param Request  $request
      * @param Response $response
      */
     abstract function onRequest(Request $request, Response $response);

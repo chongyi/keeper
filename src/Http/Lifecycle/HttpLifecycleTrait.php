@@ -8,6 +8,7 @@
 
 namespace Dybasedev\Keeper\Http\Lifecycle;
 
+use Dybasedev\Keeper\Http\Lifecycle\Interfaces\ExceptionHandler;
 use Dybasedev\Keeper\Http\Lifecycle\Interfaces\RouteDispatcher;
 use Dybasedev\Keeper\Http\Request;
 use Dybasedev\Keeper\Http\ServerProcess;
@@ -35,10 +36,7 @@ trait HttpLifecycleTrait
      */
     public function onWorkerStart()
     {
-        // 注册 ServerProcess
-        $this->getContainer()->instance(ServerProcess::class, $this);
-        $this->getContainer()->instance('workerId', $this->getWorkerId());
-
+        // 创建生命周期管理器
         $this->lifecycleHandler = $this->createLifecycleHandler($this->getContainer());
         $this->lifecycleHandler->setExceptionHandler($this->getExceptionHandler())
                                ->setRouteDispatcher($this->getRouteDispatcher($this->lifecycleHandler)
@@ -101,7 +99,7 @@ trait HttpLifecycleTrait
     /**
      * 异常处理器
      *
-     * @return \Closure
+     * @return ExceptionHandler
      */
     abstract protected function getExceptionHandler();
 }
