@@ -53,6 +53,11 @@ abstract class Process implements StandardProcess
     protected $options;
 
     /**
+     * @var array
+     */
+    public $runtime;
+
+    /**
      * @var bool
      */
     protected $withProcessController = false;
@@ -141,7 +146,7 @@ abstract class Process implements StandardProcess
      */
     public function clearTemporaryAutoLoadStatus()
     {
-        unset($this->options['temp_auto_reload']);
+        unset($this->runtime['temp_auto_reload']);
     }
 
     /**
@@ -182,7 +187,7 @@ abstract class Process implements StandardProcess
      */
     public function isTemporaryAutoReload()
     {
-        if (isset($this->options['temp_auto_reload']) && $this->options['temp_auto_reload']) {
+        if (isset($this->runtime['temp_auto_reload']) && $this->runtime['temp_auto_reload']) {
             return true;
         }
 
@@ -278,7 +283,7 @@ abstract class Process implements StandardProcess
             }
 
             if (!$this->isAutoReload()) {
-                $this->options['temp_auto_reload'] = true;
+                $this->runtime['temp_auto_reload'] = true;
                 $this->kill();
             }
         }

@@ -38,7 +38,8 @@ class ProcessTest extends TestCase
     public function testTemporaryAutoReload()
     {
         /** @var Process $process */
-        $process = $this->getMockForAbstractClass(Process::class, [['auto_reload' => false, 'temp_auto_reload' => true]]);
+        $process = $this->getMockForAbstractClass(Process::class, [['auto_reload' => false]]);
+        $process->runtime['temp_auto_reload'] = true;
         $this->assertTrue($process->isAutoReload());
         $this->assertTrue($process->isTemporaryAutoReload());
 
@@ -46,7 +47,8 @@ class ProcessTest extends TestCase
         $this->assertFalse($process->isAutoReload());
         $this->assertFalse($process->isTemporaryAutoReload());
 
-        $process = $this->getMockForAbstractClass(Process::class, [['auto_reload' => true, 'temp_auto_reload' => true]]);
+        $process = $this->getMockForAbstractClass(Process::class, [['auto_reload' => true]]);
+        $process->runtime['temp_auto_reload'] = true;
         $this->assertTrue($process->isAutoReload());
         $this->assertTrue($process->isTemporaryAutoReload());
 
