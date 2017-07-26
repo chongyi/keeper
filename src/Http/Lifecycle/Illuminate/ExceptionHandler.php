@@ -8,6 +8,7 @@
 
 namespace Dybasedev\Keeper\Http\Lifecycle\Illuminate;
 
+use Dybasedev\Keeper\Http\Lifecycle\Handler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Debug\ExceptionHandler as SymfonyExceptionHandler;
 use Dybasedev\Keeper\Http\Lifecycle\Interfaces\ExceptionHandler as ExceptionHandlerInterface;
@@ -15,6 +16,22 @@ use Dybasedev\Keeper\Http\Response;
 
 class ExceptionHandler implements ExceptionHandlerInterface
 {
+    /**
+     * @var Handler
+     */
+    protected $handler;
+
+    /**
+     * ExceptionHandler constructor.
+     *
+     * @param Handler $handler
+     */
+    public function __construct(Handler $handler)
+    {
+        $this->handler = $handler;
+    }
+
+
     /**
      * 处理异常
      *

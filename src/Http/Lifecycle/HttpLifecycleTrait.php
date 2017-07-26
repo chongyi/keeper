@@ -11,7 +11,6 @@ namespace Dybasedev\Keeper\Http\Lifecycle;
 use Dybasedev\Keeper\Http\Lifecycle\Interfaces\ExceptionHandler;
 use Dybasedev\Keeper\Http\Lifecycle\Interfaces\RouteDispatcher;
 use Dybasedev\Keeper\Http\Request;
-use Dybasedev\Keeper\Http\ServerProcess;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
 use Illuminate\Container\Container;
@@ -87,19 +86,21 @@ trait HttpLifecycleTrait
      *
      * @return RouteDispatcher
      */
-    abstract protected function getRouteDispatcher(Handler $handler);
+    abstract public function getRouteDispatcher(Handler $handler);
 
     /**
      * 获取路由注册器
      *
      * @return \Closure
      */
-    abstract protected function getRoutesRegistrar();
+    abstract public function getRoutesRegistrar();
 
     /**
      * 异常处理器
      *
+     * @param Handler $handler
+     *
      * @return ExceptionHandler
      */
-    abstract protected function getExceptionHandler();
+    abstract public function getExceptionHandler(Handler $handler);
 }

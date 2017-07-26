@@ -28,21 +28,14 @@
 ```php
 <?php
 use Dybasedev\Keeper\Http\ServerProcess;
-use Dybasedev\Keeper\Http\Lifecycle\Handler;
-use Dybasedev\Keeper\Http\Lifecycle\Illuminate\RouteDispatcher;
 use Dybasedev\Keeper\Http\Lifecycle\HttpLifecycleTrait;
-use Dybasedev\Keeper\Http\Lifecycle\HttpExceptionHandlerTrait;
+use Dybasedev\Keeper\Http\Lifecycle\Illuminate\LifecycleTrait;
 
 use Illuminate\Routing\Router;
 
 class Http extends ServerProcess
 {
-    use HttpLifecycleTrait, HttpExceptionHandlerTrait;
-    
-    protected function getRouteDispatcher(Handler $handler)
-    {
-        return new RouteDispatcher($handler);
-    }
+    use HttpLifecycleTrait, LifecycleTrait;
 
     protected function getRoutesRegistrar()
     {
