@@ -10,6 +10,7 @@ namespace Process;
 
 use Dybasedev\Keeper\Process\Process;
 use PHPUnit\Framework\TestCase;
+use Process\Stubs\ImplementStandardProcess;
 
 class ProcessTest extends TestCase
 {
@@ -66,6 +67,17 @@ class ProcessTest extends TestCase
         $clone = clone $process;
         $this->assertAttributeEquals($options, 'options', $clone);
         $this->assertAttributeEquals(false, 'withProcessController', $clone);
+    }
+
+    public function testBuildSwooleProcessInstance()
+    {
+        $process = $this->getMockForAbstractClass(ImplementStandardProcess::class);
+        $process->expects($this->once())->method('isRedirectStdIO')->willReturn(true);
+        $process->expects($this->once())->method('getPipeType')->willReturn(1);
+        $this->assertInstanceOf(\Swoole\Process::class, $process->buildSwooleProcessInstance([$process, 'process']));
+
+        $process = $this->getMockForAbstractClass(Process::class);
+        $this->assertInstanceOf(\Swoole\Process::class, $process->buildSwooleProcessInstance([$process, 'process']));
     }
 
 }

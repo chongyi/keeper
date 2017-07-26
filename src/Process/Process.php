@@ -314,18 +314,16 @@ abstract class Process implements StandardProcess
     /**
      * 构造 Swoole Process 实例
      *
-     * @param $processCallback
+     * @param callable $processCallback
      *
      * @return SwProcess
      */
     public function buildSwooleProcessInstance($processCallback)
     {
-        if ($this instanceof StandardProcess) {
-            $process = new SwProcess($processCallback);
-        } elseif ($this instanceof PipeProcess) {
+        if ($this instanceof PipeProcess) {
             $process = new SwProcess($processCallback, $this->isRedirectStdIO(), $this->getPipeType());
         } else {
-            throw new OperationRejectedException();
+            $process = new SwProcess($processCallback);
         }
 
         return $process;
