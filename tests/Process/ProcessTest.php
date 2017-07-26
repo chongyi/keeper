@@ -60,6 +60,7 @@ class ProcessTest extends TestCase
     public function testProcessClone()
     {
         $options = ['foo' => true];
+        /** @var Process $process */
         $process = $this->getMockForAbstractClass(Process::class, [$options]);
         $process->runWithProcessController(0);
 
@@ -73,6 +74,7 @@ class ProcessTest extends TestCase
 
     public function testBuildSwooleProcessInstance()
     {
+        /** @var Process $process */
         $process = $this->getMockForAbstractClass(ImplementStandardProcess::class);
         $process->expects($this->once())->method('isRedirectStdIO')->willReturn(true);
         $process->expects($this->once())->method('getPipeType')->willReturn(1);
