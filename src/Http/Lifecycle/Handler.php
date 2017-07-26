@@ -9,6 +9,7 @@
 namespace Dybasedev\Keeper\Http\Lifecycle;
 
 use Closure;
+use Dybasedev\Keeper\Http\Lifecycle\Interfaces\RouteDispatcher;
 use Dybasedev\Keeper\Http\Request;
 use Dybasedev\Keeper\Http\Response;
 use Dybasedev\Keeper\Process\Exceptions\RuntimeException;

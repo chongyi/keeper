@@ -6,7 +6,7 @@
  * @link      https://insp.top
  */
 
-namespace Dybasedev\Keeper\Http\Lifecycle;
+namespace Dybasedev\Keeper\Http\Lifecycle\Interfaces;
 
 use Closure;
 use Dybasedev\Keeper\Http\Request;

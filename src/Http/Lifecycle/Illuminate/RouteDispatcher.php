@@ -16,7 +16,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherInterface;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Routing\Router;
-use Dybasedev\Keeper\Http\Lifecycle\RouteDispatcher as RouteDispatcherInterface;
+use Dybasedev\Keeper\Http\Lifecycle\Interfaces\RouteDispatcher as RouteDispatcherInterface;
 
 class RouteDispatcher implements RouteDispatcherInterface
 {

@@ -8,6 +8,7 @@
 
 namespace Dybasedev\Keeper\Http\Lifecycle;
 
+use Dybasedev\Keeper\Http\Lifecycle\Interfaces\RouteDispatcher;
 use Dybasedev\Keeper\Http\Request;
 use Dybasedev\Keeper\Http\ServerProcess;
 use Swoole\Http\Request as SwooleRequest;

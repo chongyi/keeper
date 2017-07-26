@@ -9,7 +9,7 @@
 namespace Http;
 
 use Dybasedev\Keeper\Http\Lifecycle\Handler;
-use Dybasedev\Keeper\Http\Lifecycle\RouteDispatcher;
+use Dybasedev\Keeper\Http\Lifecycle\Interfaces\RouteDispatcher;
 use Dybasedev\Keeper\Http\Request;
 use Dybasedev\Keeper\Http\Response;
 use Exception;
