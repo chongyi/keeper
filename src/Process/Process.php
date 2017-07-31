@@ -58,9 +58,9 @@ abstract class Process implements StandardProcess
     public $runtime;
 
     /**
-     * @var bool
+     * @var ProcessController
      */
-    protected $withProcessController = false;
+    protected $withProcessController = null;
 
     /**
      * @var resource
@@ -130,15 +130,15 @@ abstract class Process implements StandardProcess
     /**
      * 通过控制器启动
      *
-     * @param int $masterId
+     * @param ProcessController $controller
      *
      * @return $this
      */
-    public function runWithProcessController($masterId)
+    public function runWithProcessController($controller)
     {
-        $this->withProcessController = true;
+        $this->withProcessController = $controller;
 
-        return $this->run($masterId);
+        return $this->run($controller->getMasterProcessId());
     }
 
     /**
@@ -293,7 +293,7 @@ abstract class Process implements StandardProcess
     {
         $this->swooleProcess         = null;
         $this->processId             = null;
-        $this->withProcessController = false;
+        $this->withProcessController = null;
     }
 
     /**

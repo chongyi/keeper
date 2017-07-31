@@ -41,7 +41,7 @@ class ProcessControllerTest extends TestCase
         $process1->expects($this->any())->method('getProcessId')->willReturn(100);
         $process1->expects($this->once())
                  ->method('runWithProcessController')
-                 ->with($this->equalTo(0))
+                 ->with($this->equalTo($controller))
                  ->willReturnSelf();
 
         $process2 = $this->getMockBuilder(Process::class)
@@ -50,7 +50,7 @@ class ProcessControllerTest extends TestCase
         $process2->expects($this->any())->method('getProcessId')->willReturn(200);
         $process2->expects($this->once())
                  ->method('runWithProcessController')
-                 ->with($this->equalTo(0))
+                 ->with($this->equalTo($controller))
                  ->willReturnSelf();
 
         $controller->registerProcesses([$process1, $process2]);

@@ -9,6 +9,7 @@
 namespace Process;
 
 use Dybasedev\Keeper\Process\Process;
+use Dybasedev\Keeper\Process\ProcessController;
 use PHPUnit\Framework\TestCase;
 use Process\Stubs\ImplementStandardProcess;
 
@@ -62,14 +63,14 @@ class ProcessTest extends TestCase
         $options = ['foo' => true];
         /** @var Process $process */
         $process = $this->getMockForAbstractClass(Process::class, [$options]);
-        $process->runWithProcessController(0);
+        $process->runWithProcessController($controller = $this->createMock(ProcessController::class));
 
         $this->assertAttributeEquals($options, 'options', $process);
-        $this->assertAttributeEquals(true, 'withProcessController', $process);
+        $this->assertAttributeEquals($controller, 'withProcessController', $process);
 
         $clone = clone $process;
         $this->assertAttributeEquals($options, 'options', $clone);
-        $this->assertAttributeEquals(false, 'withProcessController', $clone);
+        $this->assertAttributeEquals(null, 'withProcessController', $clone);
     }
 
     public function testBuildSwooleProcessInstance()

@@ -113,7 +113,7 @@ class ProcessController
      */
     private function buildProcess(Process $process)
     {
-        $process->runWithProcessController($this->masterProcess->getProcessId());
+        $process->runWithProcessController($this);
 
         $this->processes[$process->getProcessId()] = $process;
 
@@ -214,5 +214,15 @@ class ProcessController
         $this->terminated[] = $callback;
 
         return $this;
+    }
+
+    /**
+     * 获取 Master 进程 PID
+     *
+     * @return int
+     */
+    public function getMasterProcessId()
+    {
+        return $this->masterProcess->getProcessId();
     }
 }
