@@ -37,7 +37,7 @@ trait HttpLifecycleTrait
     {
         // 创建生命周期管理器
         $this->lifecycleHandler = $this->createLifecycleHandler($this->getContainer());
-        $this->lifecycleHandler->setExceptionHandler($this->getExceptionHandler($this))
+        $this->lifecycleHandler->setExceptionHandler($this->getExceptionHandler($this->lifecycleHandler))
                                ->setRouteDispatcher($this->getRouteDispatcher($this->lifecycleHandler)
                                                          ->routesRegistrar($this->getRoutesRegistrar()));
     }
