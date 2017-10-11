@@ -70,7 +70,7 @@ class ProcessExecutor extends Process
             $this->arguments = explode(' ', $this->arguments);
         }
 
-        if (is_null($this->executable) || !is_executable($this->executable)) {
+        if (is_null($this->executable)) {
             throw new RuntimeException();
         }
 
