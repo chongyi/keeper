@@ -57,7 +57,7 @@ abstract class ServerProcess extends Process
      */
     public function process()
     {
-        $this->server = $this->createSwServer();
+        $this->server = $this->createSwooleServer();
 
         $this->serverEventRegister();
 
@@ -179,11 +179,11 @@ abstract class ServerProcess extends Process
      *
      * @return Server
      */
-    public function createSwServer()
+    public function createSwooleServer()
     {
-        $server = new Server($this->options['host'], $this->options['port']);
+        $server = new Server($this->options['host'] ?? '0.0.0.0', $this->options['port'] ?? 19730);
         $server->set([
-            'worker_num' => isset($this->options['worker']) ? $this->options['worker'] : 4,
+            'worker_num' => $this->options['worker'] ?? 4,
         ]);
 
         return $server;
