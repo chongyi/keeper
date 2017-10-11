@@ -74,6 +74,7 @@ class ProcessExecutor extends Process
             throw new RuntimeException();
         }
 
+        // 外部执行代码
         $this->getSwooleProcess()->exec($this->executable, $this->arguments);
     }
 

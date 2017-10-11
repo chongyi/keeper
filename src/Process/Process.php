@@ -8,10 +8,9 @@
 
 namespace Dybasedev\Keeper\Process;
 
-use Dybasedev\Keeper\Process\Exceptions\OperationRejectedException;
 use Dybasedev\Keeper\Process\Interfaces\PipeProcess;
 use Dybasedev\Keeper\Process\Interfaces\StandardProcess;
-use Swoole\Process as SwProcess;
+use Swoole\Process as SwooleProcess;
 
 /**
  * Class Process
@@ -28,7 +27,7 @@ abstract class Process implements StandardProcess
     protected $processId;
 
     /**
-     * @var SwProcess
+     * @var SwooleProcess
      */
     protected $swooleProcess;
 
@@ -217,7 +216,7 @@ abstract class Process implements StandardProcess
     /**
      * 获取该进程 Swoole\Process 实例
      *
-     * @return SwProcess
+     * @return SwooleProcess
      */
     public function getSwooleProcess()
     {
@@ -236,14 +235,14 @@ abstract class Process implements StandardProcess
 
     protected function daemon()
     {
-        SwProcess::daemon(true, true);
+        SwooleProcess::daemon(true, true);
 
         $this->processId = posix_getpid();
     }
 
     public function kill($signal = SIGTERM)
     {
-        SwProcess::kill($this->getProcessId(), $signal);
+        SwooleProcess::kill($this->getProcessId(), $signal);
     }
 
     /**
@@ -303,7 +302,7 @@ abstract class Process implements StandardProcess
      */
     protected function generateSwooleProcessCallback()
     {
-        return function (SwProcess $process) {
+        return function (SwooleProcess $process) {
             $this->swooleProcess = $process;
             $this->processId     = $process->pid;
 
@@ -321,14 +320,14 @@ abstract class Process implements StandardProcess
      *
      * @param callable $processCallback
      *
-     * @return SwProcess
+     * @return SwooleProcess
      */
     public function buildSwooleProcessInstance($processCallback)
     {
         if ($this instanceof PipeProcess) {
-            $process = new SwProcess($processCallback, $this->isRedirectStdIO(), $this->getPipeType());
+            $process = new SwooleProcess($processCallback, $this->isRedirectStdIO(), $this->getPipeType());
         } else {
-            $process = new SwProcess($processCallback);
+            $process = new SwooleProcess($processCallback);
         }
 
         return $process;

@@ -9,7 +9,7 @@
 namespace Dybasedev\Keeper\Process;
 
 use Dybasedev\Keeper\Process\Exceptions\RuntimeException;
-use Swoole\Process as SwProcess;
+use Swoole\Process as SwooleProcess;
 
 /**
  * Class ProcessController
@@ -145,7 +145,7 @@ class ProcessController
     public function getChildrenProcessShutdownHandler()
     {
         return function () {
-            while ($ret = SwProcess::wait(false)) {
+            while ($ret = SwooleProcess::wait(false)) {
                 if ($ret) {
                     $process = clone $this->processes[$ret['pid']];
                     unset($this->processes[$ret['pid']]);
